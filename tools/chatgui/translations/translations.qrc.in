@@ -1,0 +1,7 @@
+<RCC>
+    <qresource prefix="/translations">
+        <file alias="chatgui_en.qm">@CMAKE_CURRENT_BINARY_DIR@/translations/chatgui_en.qm</file>
+        <file alias="chatgui_ru.qm">@CMAKE_CURRENT_BINARY_DIR@/translations/chatgui_ru.qm</file>
+        <file alias="qtbase_ru.qm">@QT_RUSSIAN_CATALOG@</file>
+    </qresource>
+</RCC>

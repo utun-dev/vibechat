@@ -1,0 +1,190 @@
+# Пример INI-конфига. Комментарии начинаются с #; символ ; не является комментарием.
+# Необязательные блоки ниже включаются снятием одного ведущего # со строк секции и её параметров.
+# NAT provider и NAT client — альтернативные примеры; выбирайте один из них.
+
+[global]
+tun_enabled=yes  # явно включить основной TUN (по умолчанию no); для чата/SOCKS/HTTP без TUN поставить no
+tun_ip=10.0.0.1  # IPv4 основного TUN; его доступность другим узлам задаётся через routing/my_subnet
+tun_ifname=tun0  # имя основного TUN (при включённом TUN без имени используется tun0)
+mtu=1500         # MTU ETCP (по умолчанию 1280); отдельный server может задать свой mtu
+db_path=         # каталог общей SQLite chats.db и данных чата; пусто — SQLite в памяти
+
+# Порядок, в котором другие узлы подключаются к этому узлу; передаётся в подписанном NODEINFO.
+# R=REALITY, U=UDP, T=TCP; буквы без повторений задают разрешённые транспорты и их приоритет.
+# Режим 1 — первый совместимый транспорт; 2-N — по очереди, до N секунд на каждый; 3 — все одновременно.
+# Несовместимые транспорты пропускаются; после успешного подключения перебор прекращается.
+# По умолчанию RUT2-2: REALITY → UDP → TCP, по 2 секунды на попытку; после полного провала перебор повторяется.
+connection_order=RUT2-2
+
+# Скрывать свои транспортные сокеты: принудительный private, включая автоматические UDP/TCP/REALITY и IPv4/IPv6.
+# Их адреса не передаются в NODEINFO, приглашениях и LAN-объявлениях; private UDP отклоняет новые входящие INIT.
+# Исходящие подключения сохраняются. По умолчанию no; изменение требует перезапуска ядра.
+hide_my_sockets=no
+
+# my_private_key — seed Ed25519, my_public_key — транспортный X25519 (64 HEX).
+# Публичный адрес Ed25519 вычисляется из seed при запуске.
+#my_node_name=MyNode
+
+# control socket для наблюдения и управления utun сервером
+# например utun сервер стоит на роутере, и вы можете управлять и наблюдать за ним с рабочего компьютера
+[control]
+ip=127.0.0.1
+port=12345
+# control_allow принимает IPv4/маску; можно несколько правил, по умолчанию все адреса запрещены.
+control_allow=127.0.0.1/32
+#control_allow=192.168.1.0/24
+
+[routing]
+route_subnet=10.0.0.0/16 # к каким подсетям utun вы хотите обращаться (добавит маршруты этих подсетей через utun)
+my_subnet=10.0.0.0/24 # какие ваши подсети будут доступны другим узлам utun (в секции [firewall] можно тонко настроить разрешенные ip и порты)
+
+# Секция server задаёт локальный слушающий сокет. У исходящего TCP-клиента она необязательна.
+# auto_sockets=yes в [global] также может создавать UDP/TCP-сокеты автоматически.
+[server: lo0_test]
+addr=127.0.0.1:1330
+#so_mark=100
+#netif=eth0
+type=local # public / nat / private / local; local — для локальной сети
+
+# Дополнительный интерфейс: замените адрес на реально назначенный этому узлу.
+#[server: lan1]
+#addr=192.168.29.117:1333
+#so_mark=100
+#netif=eth0
+#type=public
+
+[allowed_keys]
+# Разрешённые публичные ключи клиентов для подключения к этому серверу.
+# По умолчанию (если секция отсутствует или allow_all=0 и список пуст) — все соединения запрещены.
+# allow_all=1 — разрешить транспорт с любым узлом; членство в канале и серверный add_key проверяются отдельно.
+# key=64hexchars — добавить 32-байтовый X25519 публичный ключ в белый список.
+allow_all=0
+# Примеры формата; замените на публичные ключи своих пиров.
+#key=c6c8a8a9616ffa6cf44d4757e2bc9f7bd78a1d3cbbe75cffaf3cab8885ad48e7
+#key=04c1cae041a8e6bfba5245f6669c73f0793d7f9929300a2ba2e123ca55260d6e
+
+[firewall]
+# Основной TUN: входящие и исходящие пакеты проверяются одинаково по IP/порту назначения.
+# По умолчанию всё запрещено; ответы требуют своих разрешений. NAT/proxy TUN используют отдельные интерфейсы.
+# allow=IP — все протоколы IP; allow=IP:port — TCP/UDP; :0 — весь IP. Подсети CIDR не поддерживаются.
+# Фрагменты IPv4 требуют allow=IP или allow=all; разрешения одного порта недостаточно.
+allow=all
+#allow=192.168.1.100
+#allow=10.0.0.50:443
+#allow=8.8.8.8
+
+# --- NAT (Full Cone / EIM) ---
+# Предоставляет доступ в интернет через этот узел другим узлам utun.
+# Наличие секции [nat] включает NAT на этом узле; параметра enabled здесь нет.
+# Две роли:
+#   1. Provider (нет nat_via) — шлюз в интернет, выделяет порты для клиентов
+#   2. Client (nat_via=<Ed25519_64hex>) — отправляет свой трафик через указанный узел-провайдер
+
+# === Provider example ===
+#[nat]
+#tun_ifname=tun_nat      # имя NAT TUN интерфейса (по умолчанию tun_nat)
+#tun_ip=100.64.0.1       # IPv4 NAT TUN; без tun_ip используется global/tun_ip
+#port_start=20000         # начало диапазона портов для NAT
+#port_end=29999           # конец диапазона включительно; требуется port_start < port_end
+## Port forwarding (статический проброс портов):
+## forward=proto:Ed25519_64hex:internal_ip:internal_port:external_port; proto — tcp или udp.
+## Ed25519_64hex — узел, которому передать входящий трафик; подставьте его публичный Ed25519.
+#forward=tcp:dd9d33df43dfd02381612a908ff3e1296e4862b7121d590a12edefbae7d73d28:192.168.1.100:22:2222
+#forward=tcp:dd9d33df43dfd02381612a908ff3e1296e4862b7121d590a12edefbae7d73d28:192.168.1.100:443:443
+
+# === Client example ===
+#[nat]
+#tun_ifname=tun_nat_client
+#tun_ip=100.64.1.1        # IPv4 клиентского NAT TUN
+#nat_via=dd9d33df43dfd02381612a908ff3e1296e4862b7121d590a12edefbae7d73d28 # укажите публичный Ed25519 провайдера
+
+# --- TCP Proxy Client (локальный TCP/UDP/ICMP прокси) ---
+# Проксирует входящие TCP (через lwIP), UDP и ICMP ping через указанный via_node.
+# Также поддерживает SOCKS5 и HTTP CONNECT proxy без TUN (напрямую через ETCP).
+# Режимы можно включать раздельно или одновременно.
+#[tcp_proxy_client]
+#enabled=yes
+
+## --- TUN режим (прозрачный) ---
+#tun_name=tun_tcp           # TUN создаётся только при непустых tun_name И tun_ip
+#tun_ip=10.99.0.1           # IPv4 TUN интерфейса; без обоих полей доступны только SOCKS/HTTP
+#mtu=1500                  # MTU proxy TUN (по умолчанию 1500)
+#forward=8000 -> 10.0.0.50:80
+#forward=2222 -> 10.0.0.50:22
+
+## --- SOCKS5 режим (прямой) ---
+#socks_enabled=yes
+#socks_addr=127.0.0.1:1080   # адрес для SOCKS5 сервера (bind)
+
+## --- HTTP CONNECT режим (прямой) ---
+#http_proxy_enabled=yes
+#http_proxy_addr=127.0.0.1:8080  # адрес для HTTP CONNECT сервера (bind)
+
+#via_node=dd9d33df43dfd02381612a908ff3e1296e4862b7121d590a12edefbae7d73d28 # укажите публичный Ed25519 exit-узла (общий для всех режимов)
+
+# --- TCP Proxy Server (удаленный exit node) ---
+# Принимает CONNECT-запросы от других нод и открывает OS сокеты к адресатам.
+# Включается наличием секции; параметра enabled здесь нет.
+#[tcp_proxy_server]
+#tcp_recv_buf=65536
+#connect_timeout=2000 # таймаут исходящего connect(), миллисекунды (по умолчанию 2000)
+#fib=1                # FreeBSD: SO_SETFIB (номер таблицы маршрутизации)
+#so_mark=100          # Linux: SO_MARK (socket mark/fwmark)
+#netif=eth1           # привязка исходящих соединений к существующему интерфейсу
+#bind_ip=10.0.0.1     # локальный IPv4 для bind() перед connect(); должен принадлежать узлу
+
+# --- REALITY-камуфляж (reality socket) ---
+# REALITY маскирует TCP-порт STCP под обычный TLS-трафик к реальному сайту.
+# Сервер принимает TLS ClientHello, проверяет авторизацию (short_id + X25519)
+# и отвечает ServerHello; неавторизованных клиентов релеит на реальный сайт (dest).
+# Для включения на сервере нужен TCP-сокет: [server: ...] transport=tcp + reality=yes.
+#[reality]
+#enabled=1
+#server_name=www.microsoft.com                 # SNI-таргет (каким сайтом прикидываемся)
+#dest=www.microsoft.com:443                    # host:port реального сайта для релея
+# private_key создаётся и сохраняется автоматически; не вписывайте сюда заглушку или пустое значение.
+#short_ids=0102030405060708,aabbccddeeff0011   # список short_id (по 16 hex, через запятую; 4 шт. генерируются автоматически, если не заданы)
+#version=2.0.0                                 # версия REALITY-handshake (по умолчанию 2.0.0)
+#time_window=30                                # допуск timestamp, сек (антиреплей)
+#fingerprint=openssl                           # единственный поддерживаемый TLS-отпечаток
+
+## Пример TCP-сокета с reality-камуфляжем (сервер):
+#[server: reality_srv]
+#addr=0.0.0.0:1443
+#type=public
+#transport=tcp
+#reality=yes
+
+## --- Клиент: подключение к reality-сокету ---
+## Всё нужное для подключения задаётся прямо в секции [client].
+## Локальный сокет (bind) опционален: link=ip:port без имени использует исходящий TCP;
+## чтобы биндиться на конкретный интерфейс/ip, укажи [server: ...] transport=tcp перед ip:port.
+## peer_public_key — pubkey УЗЛА сервера (STCP), public_key — reality pubkey сервера.
+#[client: to_relay]
+# Ключи ниже — примеры формата: оба замените на ключи сервера, short_id также возьмите у сервера.
+#peer_public_key=c6c8a8a9616ffa6cf44d4757e2bc9f7bd78a1d3cbbe75cffaf3cab8885ad48e7
+#link=192.0.2.1:1443                   # без bind (ОС выбирает source)
+## Альтернатива: link=reality_srv:192.0.2.1:1443 привяжет source к TCP-сокету выше.
+#reality=yes
+#server_name=www.microsoft.com         # SNI-таргет (должен совпадать с сервером)
+#short_id=0102030405060708             # short_id, выданный сервером
+#public_key=04c1cae041a8e6bfba5245f6669c73f0793d7f9929300a2ba2e123ca55260d6e
+#version=2.0.0                        # должна совпадать с версией REALITY сервера
+#fingerprint=openssl
+
+# --- Chatserver: headless supernode config ---
+#[chatserver]
+#db_path=/var/lib/utun          # каталог chats.db и данных чата; пусто — SQLite в памяти
+# Постоянный add_key (32 случайных байта, 64 HEX) создаётся и сохраняется автоматически.
+# Не задавайте пустой add_key. Старую строку join_password из конфига нужно удалить.
+# Серверная ссылка с add_key: tools/chatcli server_link; добавление канала: server_add <ch_id> 'utun://...'
+# Для транспорта с заранее неизвестными узлами задайте allow_all=1 в секции [allowed_keys].
+#headless_control_bind=127.0.0.1:9999  # TCP control-socket для headless chat CLI
+#storage_total_size=500M         # общий лимит медиакеша; 0=безлимит (по умолчанию 1G)
+#storage_unit_size=50M           # лимит одного файла при автозагрузке; 0=безлимит (по умолчанию 100M)
+#storage_autoload=1              # автозагрузка медиавложений (0/1)
+#media_download_max_peers=3      # макс. одновременных пиров для загрузки
+#opus_codec_preset=1             # пресет Opus (0..4)
+#compressor_enabled=0            # компрессор голосовых сообщений (0/1)
+#compressor_max_gain_db=25       # макс. gain компрессора, дБ (1..60)
+#compressor_rise_rate=10         # скорость нарастания компрессора (1..100)

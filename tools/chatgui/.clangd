@@ -1,0 +1,4 @@
+If:
+  PathMatch: transport/miniaudio_impl\.c
+Index:
+  Background: Skip

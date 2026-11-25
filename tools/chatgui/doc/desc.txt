@@ -1,0 +1,40 @@
+﻿Структура БД:
+
+1. table nodes - список всех известных узлов (или пользователей)
+  node_id
+  node_pubkey
+  last_seen
+
+1A. ip_addr
+  node_id
+  ip_addr
+  port
+
+
+2. table groups - список всех известных групп
+  group_id
+  group_pubkey - privkey известен суперадминам группы. соответственно админские настройки могут менять владельцы privkey.
+
+
+3. table group_members - список пользователей групп
+  node_id
+  group_id
+  parent_node_id
+  parent_node_sign - приглашая узел, parent node должен сделать подпись для нового мембера. таким образом все мемберы выстраиваются в дерево (кто кого пригласил)
+
+
+4. table group_actions - настройки групп и действия админов. могут менять все кому известен админский ключ.
+  group_id
+  action_name - например забанить node_id и всех вниз по дереву
+  action_value
+  node_id - опциональное поле
+  node_sign - подпись ключом ноды
+  sign - подпись ключом админа группы (всех полей выше включая node_id/sign)
+
+5. table messages - собственно сообщения
+  group_id
+  node_id
+  node_sign
+  content_type
+  content
+  timestamp

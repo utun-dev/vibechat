@@ -1,0 +1,92 @@
+Аудит оставшихся контрактов transport_layer — 25–26.10.2026
+
+Область и итог
+Закрыты оставшиеся auto_socket, socket_monitor, socks_client, call_ring,
+reality/reality_fingerprint/reality_record/reality_io/reality_relay и stun_nat.
+Полностью прочитаны их реализации, заголовки и связанные участки владельцев/API.
+С учётом ранее завершённых ETCP/STCP/crypto/normalizer/NCD/dummynet/packet_dump/CRC
+сверены все 32 собственных заголовка и 17 документов src/transport_layer, а также doc/stun_nat.md.
+Вложенный BBR/bbr_v3.c не имеет отдельного заголовка/документа и относится к ранее сверенной
+реализации etcp_bbr. Это закрытие аудита описаний и найденных
+при нём дефектов, а не утверждение об отсутствии любых возможных ошибок транспорта.
+
+socket_monitor
+- Удалён разбор FreeBSD sockaddr, безусловно писавший gw[0] при переданном NULL.
+  Уведомления разбираются по родному типу if_msghdr/ifa_msghdr/if_announcemsghdr/rt_msghdr;
+  проверяются длина и версия, используется только нужный индекс интерфейса.
+- При исчезновении адреса сбрасываются старые IPv4/IPv6, сохраняется порт, корректируется IPv6 scope.
+- Обход callbacks использует ID/поколение: удаление/пересоздание сокетов не оставляет висячий next.
+- Linux проверяет источник, границы netlink, EINTR/overflow; init откатывает каждый отказ.
+- Windows объединяет уведомления и отменяет pending post при остановке после завершения native producers.
+
+auto_socket
+- UDP factory возвращает именно созданный endpoint; один общий reconcile заменяет дубли IPv4/IPv6 × UDP/TCP.
+- При замене сначала снимается старый слот, неудачная попытка не оставляет dangling pointer;
+  частичный начальный запуск откатывается, последующие ошибки сохраняют работающие endpoints.
+- Для wildcard TCP listener отдельно хранится опубликованный IP интерфейса: неизменённый listener стабилен,
+  реальная смена адреса/типа пересоздаёт его. DOWN/исчезнувшие интерфейсы удаляются после полного scan.
+- Порты SQLite проверяются по типу/диапазону, атомарный INSERT не оставляет открытую транзакцию.
+  RNG проверяется, 65535 доступен. Остановка сохраняет кеш портов, удаление интерфейса очищает его.
+- Внешние/Windows scans объединяются в отменяемый post; native источники отключаются до освобождения.
+  Внешние producers должны завершиться до destroy согласно контракту.
+- Android reload сохраняет одинаковые port=0 endpoints, учитывает scope/опции и обновляет ссылки client links
+  до освобождения старого config. Ошибка частичного reload логируется, новый config остаётся владельцу instance.
+- Проверены длины/границы Linux/FreeBSD уведомлений, ошибки nonblocking/register и Windows API.
+
+socks_client
+- CONNECT читает ровно control frame и сохраняет следующий TCP banner для владельца.
+- Start не вызывает completion inline при немедленном connect; timer/nonblocking обязательны с полным rollback.
+- Проверяются пределы строк, VER/RSV/REP, relay port/ATYP; wildcard UDP BND IP берётся из TCP peer.
+- Отправка учитывает EINTR, SIGPIPE и нулевой прогресс, проверяются переключения write monitoring.
+- UDP send возвращает payload bytes, не wire bytes; размер проверяется до сложения, NULL/0 допустимы.
+  Unwrap сохраняет выходы при отказе и допускает in-place payload.
+- DNS start остаётся синхронным getaddrinfo с первым адресом; это явно отражено в контракте.
+
+call_ring
+- История отдельная для каждого потока; насыщенный count сохраняет последние 1024 записи после wrap idx.
+- Указатели печатаются через PRIxPTR, включая Win64. Dump учитывает short write/EINTR и отказ файла,
+  продолжает stderr без обычного logger/выделений памяти. snprintf не объявлен async-signal-safe.
+
+REALITY
+- Уточнены одноразовость session, zero-init/cleanup, сохранение traffic после Finished,
+  границы codec, отсутствие replay-защиты в stateless обёртках и отдельное владение owner/I/O.
+- Traffic init сбрасывает generation, KeyUpdate увеличивает его; replay entries различают пустой slot и Unix time=0.
+- Ошибки client_start полностью удаляют новое I/O; send забирает вход только при успехе.
+- Resume сохраняет штатный finish при close_notify; transient recv EINTR не закрывает поток.
+- Relay строго проверяет destination port/timeout/длину prefix, mandatory nonblocking/timer/monitor setup.
+  SIGPIPE/EINTR/send=0 обрабатываются, счётчики учитывают каждый отправленный байт.
+- HUP дочитывает остаток/EOF: прежде uasync снимал регистрацию без except handler и relay ждал idle timeout.
+  Регрессия отключает idle timeout и требует полного двустороннего half-close.
+- Закрытые relay остаются в owner до call_soon; отказ его выделения не теряет контекст.
+  Shutdown отменяет отложенные frees и синхронно освобождает оба списка до уничтожения owner/UASYNC.
+
+STUN
+- Recheck одним scan перезапускает старые и создаёт новые пути по одному разу; раньше новый путь
+  немедленно открывал второй тестовый fd, расходуя первый свежий порт без измерения.
+- Уточнены исключение TCP/probe_only/SOCKS/only_local из API, SKIPPED IPv6/неизвестного IPv4,
+  статусы результата, неизменность выхода при -1 и обязанность caller проверять TTL.
+- Контракты и RFC-последовательность сверены с https://www.rfc-editor.org/rfc/rfc5780
+  и https://www.rfc-editor.org/rfc/rfc8489; обычный MATCH не объявляется доказательством EIM.
+
+Проверки
+- ./build.sh --no-gui -j4: PASS, /tmp/transport-audit-final-build.log.
+- ./check.sh: 194/194 PASS, 0 failed/0 skipped; proxy 9/9, burst 1/1, load 8/8,
+  134217728 проверенных байт, 170 секунд; /tmp/transport-audit-final-check.log.
+- Динамические IPv4/IPv6 сценарии auto_socket во всех UDP/TCP режимах и 8 циклах: PASS,
+  /tmp/transport-audit-auto-dynamic-final.log, в отдельном Linux netns.
+- Проверки скрипта сборки: 44/44 PASS, /tmp/transport-audit-build-script.log.
+- ASAN/UBSan/LSan: 12/12 PASS с detect_leaks=1/ halt_on_error=1:
+  socket_monitor, auto_socket_faults, socks_client, call_ring, reality_record, reality_hello,
+  reality_tls, reality_fallback, reality_relay_faults, stcp_reality_rotation, stun_nat, tun_route.
+  Все встроенные lib/src/Opus инструментированы согласованно в /tmp/utun-packet-dump-asan-20261025.
+  Сборка: /tmp/transport-audit-asan-build.log и /tmp/transport-audit-asan-tests-build.log.
+  Первый прогон /tmp/transport-audit-asan-results.log: 10 PASS и 2 отказа тестовых перехватов glibc FORTIFY.
+  Добавлены checked recvfrom/poll wrappers; оба повторных прогона PASS, без отчётов санитайзеров:
+  /tmp/transport-audit-asan-test_socket_monitor-final.log,
+  /tmp/transport-audit-asan-test_tun_route-final.log. Последние изменения только стенда проверены адресно.
+  Остальные индивидуальные логи: /tmp/transport-audit-asan-test_*.log.
+- Нативные runtime/сборки Windows и FreeBSD недоступны и не заявляются.
+  FreeBSD типы уведомлений сверены с официальными заголовками releng/14.3:
+  https://github.com/freebsd/freebsd-src/blob/releng/14.3/sys/net/if.h
+  https://github.com/freebsd/freebsd-src/blob/releng/14.3/sys/net/route.h
+  Полнота [V] означает сверку описаний по исходникам; платформенные runtime-ограничения сохранены здесь явно.

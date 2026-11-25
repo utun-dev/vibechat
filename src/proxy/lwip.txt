@@ -1,0 +1,106 @@
+﻿Как узнать, что TCP полностью завершился?
+
+В raw API прямого callback'а вида:
+
+on_connection_closed()
+
+нет.
+
+Обычно используют собственное состояние:
+
+struct conn {
+    bool closing;
+};
+
+и после успешного:
+
+tcp_close(pcb);
+conn->closing = true;
+
+считают соединение закрытым для приложения.
+
+Сам TCP завершится позже внутри lwIP.
+
+А вызовется ли err callback?
+
+Обычно нет.
+
+tcp_err()
+
+вызывается при ненормальном завершении:
+
+RST
+abort
+потеря PCB
+сетевые ошибки
+
+но не при штатном FIN/ACK закрытии.
+
+Нужно ли освобождать память после tcp_close()?
+
+Сам pcb освобождать нельзя:
+
+tcp_close(pcb);
+
+/* НЕЛЬЗЯ */
+mem_free(pcb);
+
+lwIP сделает это самостоятельно.
+
+Но ваши данные (arg) нужно освободить самостоятельно.
+
+Обычно так:
+
+struct my_conn *c = arg;
+
+tcp_arg(pcb, NULL);
+
+free(c);
+
+tcp_close(pcb);
+
+или
+
+free(c);
+tcp_close(pcb);
+pcb = NULL;
+
+если после этого код больше не обращается к c.
+
+Безопасная практика
+
+После успешного tcp_close():
+
+if (tcp_close(pcb) == ERR_OK) {
+    pcb = NULL;
+}
+
+и считать объект недействительным.
+
+Потому что lwIP может уничтожить его в любой момент по мере завершения TCP state machine.
+
+Типичный шаблон
+static void close_conn(struct my_conn *c)
+{
+    err_t err;
+
+    err = tcp_close(c->pcb);
+
+    if (err == ERR_OK) {
+        c->pcb = NULL;
+        free(c);
+    } else {
+        /* ERR_MEM -> попробуем позже */
+    }
+}
+
+Но если free(c) делается сразу, нужно быть уверенным, что никакие callback'и lwIP больше не используют arg. Часто перед закрытием сначала снимают callback'и:
+
+tcp_arg(pcb, NULL);
+tcp_recv(pcb, NULL);
+tcp_sent(pcb, NULL);
+tcp_err(pcb, NULL);
+
+а затем вызывают tcp_close().
+
+Это особенно важно в сложных приложениях с собственными структурами соединений.

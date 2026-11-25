@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="files_title">Group files</string>
+    <string name="files_mine">My files</string>
+    <string name="files_member">Member files</string>
+    <string name="files_members">Members</string>
+    <string name="files_server">Storage: %1$s</string>
+    <string name="files_choose_server">Choose storage</string>
+    <string name="files_no_server">No storage node in this group</string>
+    <string name="files_server_missing">The selected storage is no longer available. Choose another storage.</string>
+    <string name="files_loading">Loading directory…</string>
+    <string name="files_empty">This folder is empty</string>
+    <string name="files_refresh">Refresh</string>
+    <string name="files_add">Add files or folder</string>
+    <string name="files_upload">Upload files</string>
+    <string name="files_folder">New folder</string>
+    <string name="files_folder_type">Folder</string>
+    <string name="files_rename">Rename</string>
+    <string name="files_name">Name</string>
+    <string name="files_open">Open</string>
+    <string name="files_save">Save to device</string>
+    <string name="files_share">Share</string>
+    <string name="files_properties">Properties</string>
+    <string name="files_property_values">%1$s
+Size: %2$s
+Modified: %3$s
+Owner: %4$s</string>
+    <string name="files_delete_confirm">Delete “%1$s”? Only empty folders can be deleted.</string>
+    <string name="files_replace_title">Replace file?</string>
+    <string name="files_replace_confirm">“%1$s” already exists on this storage. Replace it?</string>
+    <string name="files_replace">Replace</string>
+    <string name="files_skip">Skip</string>
+    <string name="files_preparing">Preparing…</string>
+    <string name="files_transferring">Transferring…</string>
+    <string name="files_saving">Saving to device…</string>
+    <string name="files_completed">Completed</string>
+    <string name="files_cancelled">Cancelled</string>
+    <string name="files_failed">Failed</string>
+    <string name="files_batch">File %1$d of %2$d</string>
+    <string name="files_summary">Uploaded: %1$d · skipped: %2$d</string>
+    <string name="files_bytes">%1$s / %2$s</string>
+    <string name="files_quota">Storage usage across groups: %1$s / %2$s</string>
+    <string name="files_quota_reserved">Reserved for uploads: %1$s</string>
+    <string name="files_read_only">Files of this member are read-only</string>
+    <string name="files_service_directory">Service folder · read-only</string>
+    <string name="files_ready">File ready: %1$s</string>
+    <string name="files_external_failed">Unable to open or share this file. Try saving it to the device.</string>
+    <string name="files_error_access">Access denied</string>
+    <string name="files_error_missing">File or folder not found</string>
+    <string name="files_error_path">Invalid file or folder name</string>
+    <string name="files_error_range">Invalid file size or range</string>
+    <string name="files_error_exists">A file or folder with this name already exists</string>
+    <string name="files_error_busy">Storage is busy. Try again.</string>
+    <string name="files_error_stale">The file or folder changed. Refresh and try again.</string>
+    <string name="files_error_space">Not enough storage space or quota</string>
+    <string name="files_error_io">Unable to read or write the file</string>
+    <string name="files_error_packet">Invalid response from storage</string>
+    <string name="files_error_hash">File integrity verification failed</string>
+    <string name="files_error_timeout">Storage did not respond in time</string>
+    <string name="files_error_nonempty">The folder is not empty</string>
+</resources>

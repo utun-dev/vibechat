@@ -1,0 +1,4 @@
+*.log
+*.pid
+db_a/
+db_b/

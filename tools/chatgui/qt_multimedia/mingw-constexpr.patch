@@ -1,0 +1,18 @@
+--- a/src/multimedia/video/qvideoframeformat.cpp
++++ b/src/multimedia/video/qvideoframeformat.cpp
+@@ -19,6 +19,8 @@
+ 
+ QT_BEGIN_NAMESPACE
+ 
++constexpr int QVideoFrameFormat::NPixelFormats;
++
+ class QVideoFrameFormatPrivate : public QSharedData
+ {
+ public:
+--- a/src/multimedia/qmediametadata.cpp
++++ b/src/multimedia/qmediametadata.cpp
+@@ -15,2 +15,4 @@
+ QT_BEGIN_NAMESPACE
++
++constexpr int QMediaMetaData::NumMetaData;
+ 

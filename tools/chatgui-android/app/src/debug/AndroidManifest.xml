@@ -1,0 +1,9 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <instrumentation android:name="com.utun.chat.data.CallVideoProbe"
+        android:targetPackage="com.utun.chat" android:label="Call video codec probe" />
+    <instrumentation android:name="com.utun.chat.data.MediaAudioProbe"
+        android:targetPackage="com.utun.chat" android:label="Shared media audio probe" />
+    <application>
+        <activity android:name="com.utun.chat.data.MediaAudioProbeActivity" android:exported="false" />
+    </application>
+</manifest>

@@ -1,0 +1,9 @@
+﻿tui enable
+stepi   # шаг по инструкции
+nexti
+step    # шаг по строке исходника
+next
+
+bt
+frame n
+p *var

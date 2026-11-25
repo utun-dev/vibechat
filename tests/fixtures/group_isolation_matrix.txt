@@ -1,0 +1,47 @@
+# Контракты сервисов для test_service_ids.py. На каждый ID из etcp_api.h приходится одна строка.
+# ID | область доступа | проверяемое условие | исходные файлы тестов
+# GROUP — группа, PERSONAL — личный обмен, TRANSPORT — транспорт, OPT_IN — явное включение,
+# RESERVED — зарезервированный ID. Для UTUN проверки изоляции CHAT помечены прочерком.
+
+ETCP_ID_DATA | UTUN | Не используется ядром VibeChat; необязательный raw fallback не перенаправляет в CHAT API | -
+ETCP_ID_TOPO_ENTRY | GROUP | Сосед/группа/эпоха; JOIN не даёт членства; NODEINFO не заменяет ключи MEMBERS | tests/test_group_exchange.c; tests/test_group_api_isolation.c; tests/test_bgp_paths.c
+ETCP_ID_SVC_ROUTE | TRANSPORT | Конечный CHAT ACL/crypto; неизвестный service без канала; транзит только пересылает | tests/test_etcp_router_unit.c; tests/test_chat_group_isolation.c; tests/test_etcp_router.c
+ETCP_ID_NTP_TIME | TRANSPORT | Точный формат/флаги/диапазон; автор — ETCP-пир; свой свежий NTP имеет приоритет | tests/test_ntp_regressions.c
+ETCP_ID_BROADCAST | GROUP | Допуск self/соседа и область группы; generic payload не удостоверяет сквозного автора, production-подписчиков нет | tests/test_chat_group_isolation.c; tests/test_broadcast.c
+ETCP_ID_RADIO | GROUP | Допуск/подпись автора DATA/FIN; timestamp отдельно по автору; отзыв/очереди | tests/test_chat_group_isolation.c; tests/test_radio_batch.c; tests/test_radio_mesh.c
+ETCP_ID_STREAM | GROUP | Подписанный RS/END; группа/эпоха/поток/направление/handle; отзыв/общая FIFO | tests/test_group_api_isolation.c; tests/test_stream_sign.c; tests/test_stream_service.c
+ETCP_ID_MULTICAST | GROUP | Допуск self/соседа/source, путь и группа; generic payload не удостоверяет автора, production-подписчиков нет | tests/test_chat_group_isolation.c; tests/test_multicast.c
+ETCP_ID_NCD_CONTROL | TRANSPORT | Sender совпадает с реальным ETCP/записью; CLOSE не отнимает живые локальные владения | tests/test_ncd_faults.c; tests/test_node_conn_direct.c
+ETCP_ID_GROUP_INVITE | RESERVED | Устаревший обработчик удалён; fallback не вступает в группу | tests/test_chat_group_isolation.c
+ETCP_ID_DB_SYNC | GROUP | Допуск self/peer и READY; подпись/current generation автора PUSH; SOUND_SETTING не открывает историю | tests/test_chat_group_isolation.c; tests/test_db_sync_integrity.c; tests/test_group_policy.c
+ETCP_ID_CHAT_SYNC | GROUP | JOIN/carrier/key/attempt/phase; server add_key; только приглашение не даёт допуска к API | tests/test_chat_join.c; tests/test_chat_join_e2e.c; tests/test_chat_join_faults.c; tests/test_server_join.c
+ETCP_ID_MEMBER_SYNC | GROUP | Допуск к группе или чтение при recovery. MEMBERS проверяет подписи и публикует состав после commit | tests/test_chat_group_isolation.c; tests/test_merkle_protocol.c; tests/test_group_policy.c; tests/test_chat_feedback.c; tests/test_member_versions.c
+ETCP_ID_BLE_PROBE | OPT_IN | Echo только после явного instrumentation-флага; штатное ядро не регистрирует ID; JOIN ограничен отдельным carrier | tests/test_chat_group_isolation.c; tools/cgathui_common/tests/test_ble_etcp.c; tools/cgathui_common/tests/test_ble_join.c
+ETCP_RT_ID_DATA | UTUN | DATA/TUN отложен | -
+ETCP_RT_ID_NAT | UTUN | NAT отложен | -
+ETCP_RT_ID_TCP_PROXY_SERVER | UTUN | TCP proxy отложен | -
+ETCP_RT_ID_UDP_PROXY | UTUN | UDP proxy отложен | -
+ETCP_RT_ID_ICMP_PROXY | UTUN | ICMP proxy отложен | -
+ETCP_RT_ID_MEDIA_DELIVERY | GROUP | Группа/descriptor/object/поставщик; допуск до выдачи, отзыв своего потока | tests/test_chat_group_isolation.c; tests/test_media_delivery_chat.c
+ETCP_RT_ID_TCP_PROXY_CLIENT | UTUN | TCP proxy отложен | -
+ETCP_RT_ID_CONN_MGR | GROUP | Подписанные controls; группа/endpoint/request/фаза; отзыв только своего handle | tests/test_chat_group_isolation.c; tests/test_conn_mgr_phases.c
+ETCP_RT_ID_ADMIN_KEY | GROUP | Payload channel совпадает с router group; private/public ключи соответствуют каналу | tests/test_chat_group_isolation.c
+ETCP_RT_ID_JOIN | GROUP | Inviter/key/подписи JOIN; ACK/result связаны с peer/channel/attempt; отмена при отзыве | tests/test_chat_group_isolation.c; tests/test_chat_join_e2e.c; tests/test_chat_join_faults.c
+ETCP_RT_ID_DM | PERSONAL | Подписи автора/получателя, точное тело, snapshot сторон; выбор любой доступной общей группы | tests/test_chat_group_isolation.c; tests/test_dm_e2e.c; tests/test_dm_group_routes.c
+ETCP_RT_ID_DM_MAILBOX | PERSONAL | PUT только автор->S; DELIVER от S; STORED связан с S/получателем/хешем PUT; outbox ждёт receipt B | tests/test_dm_e2e.c; tests/test_dm_group_routes.c; tests/test_dm_media.c
+ETCP_RT_ID_CALL | GROUP | Peer/group/call_id/фаза/цель; отзыв завершает звонок, активный звонок группу не меняет | tests/test_group_api_isolation.c; tests/test_call_admission.c
+ETCP_RT_ID_FILE_TRANSFER | PERSONAL | Допуск до lookup/fopen; object/size/transfer/direction; готовый ciphertext по принятой политике | tests/test_chat_group_isolation.c; tests/test_dm_media.c; tests/test_dm_group_routes.c
+ETCP_RT_ID_DM_MEDIA | PERSONAL | Роль/assignment/object/подпись; SOURCE_GONE только holder или свой issuer; личная копия сохраняется | tests/test_dm_media.c; tests/test_dm_group_routes.c; tests/test_dm_schema.c
+ETCP_RT_ID_MEMBER_FILES | GROUP | Peer/owner/path/роль storage; мутация своего каталога; queued jobs отменяются, running не выдаёт результат | tests/test_chat_group_isolation.c; tests/test_member_files_network.c; tests/test_member_files.c
+ETCP_RT_ID_GROUP_AVATAR | GROUP | Group/peer/READY/version/hash; подпись ключа группы; отзыв partial RX/backpressure | tests/test_chat_group_isolation.c; tests/test_group_avatar.c; tests/test_group_avatar_sql.c
+ETCP_RT_ID_NAT_DETECTION | GROUP | CHAT-политика; round/generation/token/owner/observer/helper; отзыв третьего участника | tests/test_chat_group_isolation.c; tests/test_nat_detection_faults.c
+ETCP_RT_ID_STREAM | GROUP | Группа envelope/descriptor; REVERSE/CLOSED привязаны к потоку; relay требует роль S/ожидание | tests/test_group_api_isolation.c; tests/test_stream_service.c
+ETCP_RT_ID_CALL_VIDEO_CONTROL | GROUP | Точный service, call_id, поколение/возможности/фаза; отзыв | tests/test_group_api_isolation.c; tests/test_call_video.c
+ETCP_RT_ID_CALL_VIDEO | GROUP | Точный service, call_id, поколение/возможности/фаза; отзыв/очередь | tests/test_group_api_isolation.c; tests/test_call_video.c
+ETCP_RT_ID_CALL_AUDIO | GROUP | Точный service, call_id/peer/group; отзыв останавливает медиа | tests/test_group_api_isolation.c; tests/test_call_admission.c
+ETCP_RT_ID_RADIO_CALL | GROUP | Group/peer/id/цель/фаза/срок; FORCE не обходит запрет входящего вызова | tests/test_chat_group_isolation.c; tests/test_call_admission.c
+ETCP_RT_ID_MULTICAST_REPORT | GROUP | CHAT-политика, source=router peer, descriptor принадлежит группе | tests/test_chat_group_isolation.c; tests/test_multicast.c
+ETCP_RT_ID_DEVGROUP | GROUP | Допуск, закреплённые X/Ed, PIN и фаза; отзыв чистит ожидания, импортированная личность сохраняется | tests/test_group_api_isolation.c; tests/test_devgroup_network.c
+ETCP_RT_ID_ATTACHMENT_KEYS | GROUP | Group/peer/message/attachment; явный GRANT автора; отзыв отменяет ожидания, поздний ответ не возрождает запрос | tests/test_chat_group_isolation.c; tests/test_attachment_requests.c; tests/test_attachment_results.c
+ETCP_RT_ID_CLIPBOARD | PERSONAL | Собственные устройства одной devgroup или адресат в CHAT с подписанным clipboard_members. ACK после применения | tests/test_devgroup_network.c; tools/chatgui/tests/test_clipboard_exchange.cpp; tests/test_group_policy.c
+ETCP_RT_ID_CLIPBOARD_FILES | PERSONAL | Файл из принятого предложения. Проверяются принадлежность устройства или адресат, группа и разрешение clipboard_members | tests/test_devgroup_network.c; tools/chatgui/tests/test_clipboard_native.cpp

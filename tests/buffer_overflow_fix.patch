@@ -1,0 +1,38 @@
+--- test_etcp_simple_traffic.c.backup
++++ test_etcp_simple_traffic.c
+@@ -172,19 +172,25 @@
+     DEBUG_INFO(DEBUG_CATEGORY_ETCP, "SIMULATE RX: inst=%s, len=%u", 
+                 inst->is_server ? "server" : "client", len);
+     
+-    // Create a mock ETCP_DGRAM for processing
+-    struct ETCP_DGRAM mock_dgram;
+-    memset(&mock_dgram, 0, sizeof(mock_dgram));
+-    mock_dgram.link = NULL; // Will be set by connection processing
+-    mock_dgram.data_len = len > 1500 ? 1500 : len;
+-    mock_dgram.timestamp = get_current_timestamp();
+-    if (mock_dgram.data_len > 0) {
+-        memcpy(mock_dgram.data, data, mock_dgram.data_len);
++    // Create a mock ETCP_DGRAM for processing with proper allocation
++    size_t dgram_size = sizeof(struct ETCP_DGRAM) + (len > 1500 ? 1500 : len);
++    struct ETCP_DGRAM* mock_dgram = malloc(dgram_size);
++    if (!mock_dgram) {
++        DEBUG_ERROR(DEBUG_CATEGORY_ETCP, "Failed to allocate mock dgram");
++        return;
++    }
++    memset(mock_dgram, 0, dgram_size);
++    mock_dgram->link = NULL; // Will be set by connection processing
++    mock_dgram->data_len = len > 1500 ? 1500 : len;
++    mock_dgram->timestamp = get_current_timestamp();
++    if (mock_dgram->data_len > 0) {
++        memcpy(mock_dgram->data, data, mock_dgram->data_len);
+     }
+     
+     // Process through ETCP input
+-    etcp_conn_input(&mock_dgram);
++    etcp_conn_input(mock_dgram);
++    
++    // Free the allocated memory
++    free(mock_dgram);
+ }
+ 
+ // Simulate packet transmission for analysis

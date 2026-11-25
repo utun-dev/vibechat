@@ -1,0 +1,11 @@
+@PACKAGE_INIT@
+
+include("${CMAKE_CURRENT_LIST_DIR}/SoundTouchTargets.cmake")
+
+check_required_components(SoundTouch)
+
+if(@SOUNDTOUCH_DLL@)
+  check_required_components(SoundTouchDLL)
+  get_target_property(SoundTouchDLL_LOCATION SoundTouch::SoundTouchDLL LOCATION)
+  message(STATUS "Found SoundTouchDLL: ${SoundTouchDLL_LOCATION}")
+endif()

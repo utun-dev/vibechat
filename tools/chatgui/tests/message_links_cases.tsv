@@ -1,0 +1,20 @@
+# text<TAB>expected full URLs; literal \n is decoded as a newline
+Открой (https://example.com/a(b)?q=1#part), затем http://example.org/.	https://example.com/a(b)?q=1#part	http://example.org/
+https://пример.рф/путь?ключ=значение#раздел	https://пример.рф/путь?ключ=значение#раздел
+✨ https://example.com/✨?q=👋 и utun://abc+/==.	https://example.com/✨?q=👋	utun://abc+/==
+HTTPS://EXAMPLE.COM:8443/path?q=a%20b&x=2#f	HTTPS://EXAMPLE.COM:8443/path?q=a%20b&x=2#f
+https://[::1]:443/a	https://[::1]:443/a
+«https://example.com/a» "http://example.org/b".	https://example.com/a	http://example.org/b
+http:// https://?x=1 http:///path https://example.com:70000/ https://example.com/%GG
+mailto:a@example.com ftp://example.com www.example.com javascript:alert(1)
+https://example.com/a[0]}!	https://example.com/a[0]
+https://example.com/a?q=(x)	https://example.com/a?q=(x)
+https://example.com/a после	https://example.com/a
+https://example.com/a.\nhttp://example.org/b	https://example.com/a	http://example.org/b
+https://example.com:bad/
+https://user:password@example.com/a	https://user:password@example.com/a
+UTUN://abc+/==
+Ссылка (utun://chat/Команда@42/Релиз@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa). Здесь.	utun://chat/Команда@42/Релиз@aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+utun://kanban/Проект@43/Карточка@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/Ответ@cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc!	utun://kanban/Проект@43/Карточка@bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb/Ответ@cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc
+utun://chat/%D0%A2%2F%40@42/%F0%9F%98%80@AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA	utun://chat/%D0%A2%2F%40@42/%F0%9F%98%80@AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+utun://chat/сломанная@42/неполный@bad-extra	utun://chat/сломанная@42/неполный@bad-extra

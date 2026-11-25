@@ -1,0 +1,4 @@
+// Значок EXE для меню «Пуск», ярлыков и Проводника; путь подставляет CMake.
+1 ICON "@CMAKE_CURRENT_SOURCE_DIR@/resources/icons/app_icon.ico"
+// UTF-8 для системных ошибок, в том числе в отдельном процессе камеры.
+1 24 "@CMAKE_CURRENT_SOURCE_DIR@/resources/vibechat.manifest"

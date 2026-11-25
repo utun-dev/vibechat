@@ -1,0 +1,69 @@
+Аудит документации Local_transport — 26.10.2026
+
+Объём и статус
+
+Полностью прочитаны src/local_transport/local_transport.c и platform.c,
+сверены все объявления и комментарии трёх заголовков local_transport.h,
+platform.h и protocol.h. Все три заголовка готовы к отметке [V] в чек-листе.
+Для проверки интеграции прочитан chat_local.c; прочитаны три профильных теста
+и local_transport_ipv6.sh. Полный аудит src/chat этой записью не заявляется.
+LAN-раздел doc/node_snapshot.md уточнён; общая отметка документа остаётся [~].
+
+Исправленные описания
+
+1. Доставка и дедупликация. Убрано безусловное обещание отсутствия дублей:
+   кеш хранит последние 128 успешно принятых (peer, epoch, request) до 30с,
+   без продления повтором. Отказы received не кешируются. Request уникален
+   среди pending, а повторное использование ID также ограничено кешем получателя.
+   FAILED и отсутствие ACK не доказывают, что приложение не получило данные.
+   Описаны 8 pending, немедленная отправка и до двух повторов по секундному tick.
+
+2. Активность и callbacks. Уточнены синхронные уведомления из API, порядок
+   activity_changed перед открытием/закрытием сокетов, завершение pending
+   через FAILED и сохранение эпохи/дедупликации при паузе того же handle.
+   Отказы открытия сокетов не означают отказ set_active: повтор при сверке;
+   невозможность создать tick-таймер выключает транспорт. peers() очищает TTL
+   и может вызвать routes_changed; route() callbacks не вызывает.
+
+3. Broadcast и TTL. Изменение ника рассылается только при active+broadcasts;
+   тот же ник не вызывает отправку. Отключение broadcasts сохраняет unicast,
+   приём, сверку интерфейсов и TTL. Только обычный ANNOUNCE продлевает endpoint.
+   Жизнь кандидата дополнительно ограничена его собственным TTL, интерфейсом
+   и discovery-endpoint. Offline-gate применяется к подписанному входящему
+   обмену, но не повторяется при route() и не нужен для ответа на CHALLENGE.
+
+4. Wire. Описаны все смещения 60-байтного заголовка, NUL в 16-байтном magic,
+   длина тела, BE, типы сообщений, неподписанные MESSAGE/ACK и ограничения
+   discovery-порта. Уточнены подпись/nonce, scope, допустимые protocol,
+   уникальные socket_id, ненулевые port/generation и пустой PROOF.
+
+5. Платформа. Зафиксированы различия отбора POSIX/Windows, дедупликация
+   адресов, усечение снимка, ответственность за ifindex/scope, допустимый
+   источник и результаты local_receive (включая пустой UDP/would-block/-2).
+   Добавлены предусловия встроенных BE/UTF-8 helpers и категория discovery.
+
+Проверки
+
+make -C src -j4 libutun.a и сборка трёх профильных тестов — PASS.
+Логи /tmp/local-transport-audit-build.log и
+/tmp/local-transport-audit-tests-build.log. Существующие предупреждения
+db_sync/etcp_connections/dm_media не относятся к изменённым комментариям.
+
+Пять сценариев PASS, последовательно вне sandbox из-за запрета сокетов:
+- test_local_transport: UDP discovery, ACK retry/dedup, TTL, настройки,
+  остановка/повторная активация; /tmp/local-transport-audit-discovery.log.
+- test_local_transport_packets: миллион некорректных пакетов, ограничения
+  flood/памяти/events и восстановление; /tmp/local-transport-audit-packets.log.
+- test_local_routes: подписи, nonce/replay, BGP gate, поколения сокетов,
+  TTL, NCD UDP/STCP и сохранность snapshot; /tmp/local-transport-audit-routes.log.
+- sh tests/local_transport_ipv6.sh: изолированная IPv6-only LAN;
+  /tmp/local-transport-audit-ipv6-discovery.log.
+- sh tests/local_transport_ipv6.sh test_local_routes: IPv6 scope и LAN/NCD;
+  /tmp/local-transport-audit-ipv6-routes.log.
+
+В заголовках изменены только комментарии; логика, ABI и wire не менялись.
+Новых подтверждённых дефектов реализации в этом объёме не обнаружено.
+Прежняя задача о нестабильном ACK в test_local_transport остаётся открытой:
+успешный отдельный прогон не подтверждает устранение флака под общей нагрузкой.
+Полный check.sh, санитайзеры, native Windows/FreeBSD и GUI/Android runtime
+не запускались. [V] означает завершённую сверку документации по исходникам.

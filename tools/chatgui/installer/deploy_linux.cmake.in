@@ -1,0 +1,63 @@
+# Выполняется только в staging CPack/cmake --install; пользовательские файлы из build не копируются.
+set(app "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/opt/vibechat")
+set(plugins)
+foreach(required platforms/libqxcb.so platforms/libqoffscreen.so imageformats/libqjpeg.so
+                 imageformats/libqwebp.so tls/libqopensslbackend.so multimedia/libffmpegmediaplugin.so)
+    if(NOT EXISTS "@DEB_QT_PLUGINS@/${required}")
+        message(FATAL_ERROR "Required Qt plugin missing: @DEB_QT_PLUGINS@/${required}")
+    endif()
+endforeach()
+foreach(type platforms imageformats tls multimedia xcbglintegrations platforminputcontexts networkinformation)
+    if(type STREQUAL "platforms")
+        set(found "@DEB_QT_PLUGINS@/platforms/libqxcb.so" "@DEB_QT_PLUGINS@/platforms/libqoffscreen.so")
+    elseif(type STREQUAL "multimedia")
+        set(found "@DEB_QT_PLUGINS@/multimedia/libffmpegmediaplugin.so")
+    else()
+        file(GLOB found "@DEB_QT_PLUGINS@/${type}/*.so")
+    endif()
+    list(APPEND plugins ${found})
+endforeach()
+
+# Эти библиотеки должны соответствовать ОС, аудиосерверу и видеодрайверам пользователя.
+set(system_libraries
+    "^ld-linux.*" "^lib(c|m|mvec|pthread|dl|rt|resolv|util|anl|nss_.*|gcc_s|stdc\\+\\+)\\.so"
+    "^lib(GL.*|EGL|OpenGL|GLES.*|drm.*|gbm|vulkan|va|va-.*|vdpau|cuda.*|nvidia.*)\\.so"
+    "^lib(pulse.*|asound|pipewire-.*|spa-.*|udev|systemd)\\.so")
+message(STATUS "DEB: resolving application and Qt plugin dependencies")
+file(GET_RUNTIME_DEPENDENCIES EXECUTABLES "$<TARGET_FILE:vibechat>" MODULES ${plugins}
+    PRE_EXCLUDE_REGEXES ${system_libraries}
+    RESOLVED_DEPENDENCIES_VAR libraries UNRESOLVED_DEPENDENCIES_VAR missing
+    CONFLICTING_DEPENDENCIES_PREFIX conflicts)
+if(missing OR conflicts_FILENAMES)
+    message(FATAL_ERROR "Incomplete DEB runtime: missing=[${missing}] conflicting=[${conflicts_FILENAMES}]")
+endif()
+file(INSTALL ${libraries} DESTINATION "${CMAKE_INSTALL_PREFIX}/opt/vibechat/lib" FOLLOW_SYMLINK_CHAIN)
+foreach(plugin IN LISTS plugins)
+    file(RELATIVE_PATH relative "@DEB_QT_PLUGINS@" "${plugin}")
+    get_filename_component(type "${relative}" DIRECTORY)
+    file(INSTALL "${plugin}" DESTINATION "${CMAKE_INSTALL_PREFIX}/opt/vibechat/plugins/${type}")
+endforeach()
+# Убираем пути машины сборки из скопированных ELF; поиск наследуется от DT_RPATH приложения.
+file(GLOB_RECURSE runtime "${app}/lib/*" "${app}/plugins/*")
+foreach(binary IN LISTS runtime)
+    if(NOT IS_SYMLINK "${binary}")
+        file(RPATH_REMOVE FILE "${binary}")
+    endif()
+endforeach()
+file(WRITE "${app}/bin/qt.conf" "[Paths]\nPrefix=..\nPlugins=plugins\nLibraries=lib\n")
+file(MAKE_DIRECTORY "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/usr/bin")
+file(CREATE_LINK ../../opt/vibechat/bin/vibechat "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/usr/bin/vibechat" SYMBOLIC)
+
+set(sources ${libraries} ${plugins})
+list(REMOVE_DUPLICATES sources)
+string(REPLACE ";" "\n" sources "${sources}")
+file(WRITE "@CMAKE_CURRENT_BINARY_DIR@/deb-runtime-sources.txt" "${sources}\n")
+execute_process(COMMAND "@Python3_EXECUTABLE@" "@CMAKE_CURRENT_SOURCE_DIR@/installer/linux_licenses.py"
+    "@CMAKE_CURRENT_BINARY_DIR@/deb-runtime-sources.txt" "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/usr/share/doc/vibechat/runtime"
+    RESULT_VARIABLE license_result)
+if(NOT license_result EQUAL 0)
+    message(FATAL_ERROR "DEB runtime license collection failed: ${license_result}")
+endif()
+list(LENGTH libraries library_count)
+list(LENGTH plugins plugin_count)
+message(STATUS "DEB runtime ready: libraries=${library_count} Qt_plugins=${plugin_count}; system dependencies follow via dpkg-shlibdeps")

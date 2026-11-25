@@ -1,0 +1,122 @@
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -1,4 +1,4 @@
+-cmake_minimum_required( VERSION 3.3 )
++cmake_minimum_required( VERSION 3.16 )
+ 
+ #declare project
+ project( rlottie VERSION 0.2 LANGUAGES C CXX ASM)
+@@ -84,7 +84,7 @@
+ find_package( Threads )
+ 
+ if(WIN32)
+-   set( OSSPEC_LIBS Shlwapi.lib )
++   set( OSSPEC_LIBS Shlwapi )
+ endif()
+ 
+ target_link_libraries(rlottie
+--- a/arm_build.sh
++++ b/arm_build.sh
+@@ -1,4 +1,6 @@
+ #!/bin/bash
++# Кросс-сборка библиотеки rlottie для ARM: подставляет sysroot из первого аргумента в конфигурацию Meson.
++# Создаёт builddir_arm и запускает Ninja через sudo.
+ 
+ if [ -z "$1" ]; then
+     echo "Sysroot PATH is not provided"
+--- a/wasm_build.sh
++++ b/wasm_build.sh
+@@ -1,4 +1,6 @@
+ #!/bin/bash
++# Сборка rlottie для WebAssembly: настраивает Meson по пути Emscripten SDK из первого аргумента.
++# Запускает Ninja через sudo и выводит пути к файлам WASM/JS в builddir_wasm/src.
+ 
+ if [ -z "$1" ]; then
+     echo "Emscripten SDK PATH is not provided"
+--- a/inc/rlottie_capi.h
++++ b/inc/rlottie_capi.h
+@@ -48,6 +48,11 @@
+ 
+ typedef struct Lottie_Animation_S Lottie_Animation;
+ 
++/* Предупреждения встроенной библиотеки доступны и без LOTTIE_LOGGING_SUPPORT. */
++#define RLOTTIE_HAS_WARNING_CALLBACK 1
++typedef void (*Lottie_Warning_Callback)(const char *message);
++RLOTTIE_API void lottie_set_warning_callback(Lottie_Warning_Callback callback);
++
+ /**
+  *  @brief Runs lottie initialization code when rlottie library is loaded
+  * dynamically.
+--- a/src/vector/vdebug.cpp
++++ b/src/vector/vdebug.cpp
+@@ -21,6 +21,26 @@
+  */
+ 
+ #include "vdebug.h"
++#include "rlottie_capi.h"
++#include <atomic>
++#include <cstdarg>
++#include <cstdio>
++
++static std::atomic<Lottie_Warning_Callback> warningCallback{nullptr};
++
++extern "C" void lottie_set_warning_callback(Lottie_Warning_Callback callback) {
++    warningCallback.store(callback);
++}
++
++void lottieWarning(const char *format, ...) {
++    char message[1024];
++    va_list args;
++    va_start(args, format);
++    std::vsnprintf(message, sizeof(message), format, args);
++    va_end(args);
++    if (auto callback = warningCallback.load()) callback(message);
++    else std::fprintf(stderr, "[WARN] rlottie: %s\n", message);
++}
+ 
+ #ifdef LOTTIE_LOGGING_SUPPORT
+ 
+--- a/src/vector/vdebug.h
++++ b/src/vector/vdebug.h
+@@ -24,6 +24,8 @@
+ #define VDEBUG_H
+ 
+ #include "config.h"
++
++void lottieWarning(const char *format, ...);
+ 
+ #ifdef LOTTIE_LOGGING_SUPPORT
+ 
+--- a/src/lottie/lottieitem.cpp
++++ b/src/lottie/lottieitem.cpp
+@@ -94,7 +94,7 @@
+ // bounds nested repeaters (repeater whose content contains another
+ // repeater), since every copy at every nesting level draws from the same
+ // shared budget.
+-static constexpr size_t kMaxShapeContentBudget = 15000;
++static constexpr size_t kMaxShapeContentBudget = 150000;
+ 
+ static renderer::Layer *createLayerItem(model::Layer *layerData,
+                                         VArenaAlloc *allocator, int depth,
+@@ -1059,8 +1059,8 @@
+          ++it) {
+         size_t cost = contentItemCost(*it);
+         if (cost > contentBudget) {
+-            vWarning << "Max shape content budget ("
+-                     << kMaxShapeContentBudget << ") exceeded, dropping content item";
++            lottieWarning("Shape content budget exceeded: group=%s item=%s cost=%zu remaining=%zu limit=%zu; dropping item",
++                          data->name(), (*it)->name(), cost, contentBudget, kMaxShapeContentBudget);
+             continue;
+         }
+         contentBudget -= cost;
+@@ -1590,8 +1590,8 @@
+ 
+     for (int i = 0; i < maxCopies; i++) {
+         if (contentBudget == 0) {
+-            vWarning << "Max shape content budget (" << kMaxShapeContentBudget
+-                     << ") exceeded, clamping repeater copies to " << i;
++            lottieWarning("Shape content budget exceeded: repeater=%s copies=%d requested=%d remaining=%zu limit=%zu",
++                          data->name(), i, maxCopies, contentBudget, kMaxShapeContentBudget);
+             break;
+         }
+         --contentBudget;  // charge for this copy's own group wrapper

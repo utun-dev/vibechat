@@ -1,0 +1,190 @@
+# Build directory (out-of-tree build)
+/build/
+build-win/
+tools/chatgui/build/
+tools/chatgui/build-deb/
+tools/chatgui/rlottie_build/
+tools/chatgui/ffmpeg/ffmpeg_build/
+tools/chatgui/qt_multimedia/build/
+tools/lightsout/build/
+tools/lightsout-android/.gradle/
+tools/lightsout-android/app/build/
+tools/lightsout-android/local.properties
+
+# Build outputs
+*.o
+*.lo
+*.la
+*.a
+*.so
+*.so.*
+/utun
+/utun.exe.manifest
+/src/utun
+test_serialize
+linux-x64-deb
+ftp.txt
+/proxy.sh
+
+# Temp files
+*.c1
+*.h2
+1
+
+# HTML files
+index.html
+
+# binary files
+*.exe
+*.deb
+*.apk
+
+# Autotools
+/.utun-build-state*
+Makefile
+!tools/etcpmon/Makefile
+Makefile.in
+/aclocal.m4
+/autom4te.cache/
+/autoscan.log
+/autoscan-*.log
+/compile
+/config.cache
+/config.guess
+/config.h
+/config.h.in
+/config.log
+/config.status
+/config.sub
+/configure
+/configure.scan
+/depcomp
+/install-sh
+/libtool
+/missing
+/stamp-h1
+/build-aux/
+/m4/
+.deps/
+.dirstamp
+
+# Editor files
+*~
+*.swp
+*.swo
+.vscode/
+.idea/
+.cache/
+
+# Debug outputs
+/core
+vgcore.*
+callgrind.out.*
+
+# Test outputs
+tests/*.log
+tests/*.trs
+tests/log
+tests/logs/
+/db_a/
+/db_b/
+
+# Mass update logs
+logs/
+
+# Test binaries (executables without extension), but track source/config files
+tests/test_*
+!tests/test_*.c
+!tests/test_*.h
+!tests/test_*.py
+!tests/test_*.ps1
+!tests/test_*.conf
+!tests/test_*.json
+tests/bench_*
+!tests/bench_*.c
+
+# All log files
+*.log
+*.log.*
+utun.log*
+
+# logreceiver artifacts
+tools/logreceiver/logreceiver_output.log*
+tools/logreceiver/build/
+
+# Local configs
+*.cfg
+!utun_test.cfg
+utun.conf
+!utun.conf.sample
+
+# IDE/Editor directories
+.opencode/
+
+# Tool binaries
+tools/bping/bping
+tools/proxy/udp_proxy
+
+# Reference projects (not part of utun)
+tools/tdesktop-dev/
+/hardware/
+
+# Debug/temp artifacts
+*.bak
+*.debug
+*.csv
+__pycache__/
+tools/chatgui/build-user/
+
+
+# MSVC temp files
+cl
+build_win.log
+/wintun.dll
+src/lwip_orig/
+lib/timeout/
+utun.pid
+.check_time
+
+# Generated compiler, CMake and IDE files
+*.obj
+*.d
+*.dll
+*.lib
+*.pdb
+*.idb
+*.ilk
+*.exp
+*.vcxproj.user
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+compile_commands.json
+build.ninja
+.ninja_deps
+.ninja_log
+/malloc_test
+/net_emulator/net_emulator
+/tools/chatgui/rlottie_src/example/resource/layout.edj
+
+# Experimental ETCP lab is maintained in the etcp_lab branch
+/tools/etcp_lab/
+
+# Восстанавливаются tools/prepare_dependencies.py; рецепты, патчи и лицензии остаются в Git.
+/lib/sqlite3.c
+/lib/sqlite3.h
+/lib/miniaudio.h
+/lib/silero_vad.onnx
+/lib/silero_vad_model.inc
+/lib/wintun.dll
+/tools/chatgui/db/sqlite3.c
+/tools/chatgui/db/sqlite3.h
+/tools/chatgui/rlottie_src/*
+!/tools/chatgui/rlottie_src/COPYING
+!/tools/chatgui/rlottie_src/UPSTREAM.txt
+!/tools/chatgui/rlottie_src/licenses/
+/tools/chatgui-android/app/src/main/cpp/openssl/arm64-v8a/
+/tools/chatgui-android/app/src/main/cpp/openssl/x86_64/
+/tools/chatgui-android/app/src/main/cpp/onnxruntime/include/
+/src/dnsmasq/*.tar.xz

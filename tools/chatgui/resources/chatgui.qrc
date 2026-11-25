@@ -1,0 +1,20 @@
+<RCC>
+    <qresource prefix="/">
+        <file>animations/sparkles_emoji.tgs</file>
+        <file>animations/white_flag_emoji.tgs</file>
+        <file>animations/greeting.tgs</file>
+        <file>animations/stop.tgs</file>
+        <file>animations/robot.tgs</file>
+        <file>icons/attach.png</file>
+        <file>icons/emoji.png</file>
+        <file>icons/mic.png</file>
+        <file>icons/send.png</file>
+        <file>icons/app_icon.webp</file>
+        <file>sounds/msg_incoming.mp3</file>
+        <file>sounds/call_incoming.mp3</file>
+        <file>sounds/radio_incoming.mp3</file>
+        <file>sounds/call_connecting.mp3</file>
+        <file>sounds/call_ringing.mp3</file>
+        <file>bg.webp</file>
+    </qresource>
+</RCC>

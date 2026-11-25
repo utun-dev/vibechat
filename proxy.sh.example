@@ -1,0 +1,15 @@
+#!/bin/sh
+# Скопируйте в proxy.sh и впишите HTTP-прокси в одинарных кавычках, например http://127.0.0.1:8080.
+# Пустое значение сохраняет настройки прокси из окружения. Данные авторизации в URL должны быть URL-encoded.
+# Эту строку также читает Windows bootstrap до установки MSYS2; не используйте в ней подстановки shell.
+UTUN_HTTP_PROXY=''
+
+if [ -n "$UTUN_HTTP_PROXY" ]; then
+    case "$UTUN_HTTP_PROXY" in
+        http://?*|https://?*) ;;
+        *) printf 'ERROR: proxy.sh: expected an HTTP proxy URL\n' >&2; return 1 ;;
+    esac
+    export http_proxy="$UTUN_HTTP_PROXY" https_proxy="$UTUN_HTTP_PROXY"
+    export HTTP_PROXY="$UTUN_HTTP_PROXY" HTTPS_PROXY="$UTUN_HTTP_PROXY"
+fi
+unset UTUN_HTTP_PROXY

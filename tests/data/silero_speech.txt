@@ -1,0 +1,12 @@
+silero_speech.pcm — синтезированная речь для регрессии Silero VAD.
+Формат: mono, 16000 Hz, signed int16 little endian; 16384 отсчёта (32 окна по 512).
+Фраза: "This is a speech recognition test. The radio should start transmitting when I speak. One two three four five."
+Источник: встроенный синтезатор flite в FFmpeg, голос по умолчанию (kal).
+Файл хранится в репозитории; FFmpeg/flite при запуске теста не требуются.
+
+Воспроизведение файла:
+ffmpeg -f s16le -ar 16000 -ac 1 -i silero_speech.pcm silero_speech.wav
+
+Генерация исходного сигнала:
+ffmpeg -f lavfi -i "flite=text='This is a speech recognition test. The radio should start transmitting when I speak. One two three four five.'" -ar 16000 -ac 1 -f s16le speech_full.pcm
+silero_speech.pcm содержит первые 32768 байт speech_full.pcm.

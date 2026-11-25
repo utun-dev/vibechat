@@ -1,0 +1,12 @@
+--- a/source/encoder/api.cpp
++++ b/source/encoder/api.cpp
+@@ -339,7 +339,9 @@ int x265_encoder_reconfig(x265_encoder* enc, x265_param* param_in)
+     }
+     else
+     {
++        x265_param* activeParam = encoder->m_param;
+         encoder->configure(encoder->m_latestParam);
++        encoder->m_param = activeParam;
+         if (strlen(encoder->m_latestParam->scalingLists) && strcmp(encoder->m_latestParam->scalingLists, encoder->m_param->scalingLists))
+         {
+             if (encoder->m_param->bRepeatHeaders)

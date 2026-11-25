@@ -1,0 +1,72 @@
+--- a/libavcodec/amfenc.h
++++ b/libavcodec/amfenc.h
+@@ -112,6 +112,8 @@
+     int                 aud;
+     int                 max_consecutive_b_frames;
+     int                 max_b_frames;
++    int                 utun_qp_max;
++    int                 utun_qp_applied;
+     int                 qvbr_quality_level;
+     int                 hw_high_motion_quality_boost;
+ 
+--- a/libavcodec/amfenc_h264.c
++++ b/libavcodec/amfenc_h264.c
+@@ -28,6 +28,7 @@
+ #define VE AV_OPT_FLAG_VIDEO_PARAM | AV_OPT_FLAG_ENCODING_PARAM
+ 
+ static const AVOption options[] = {
++    { "utun_qp_max", "Live QP ceiling", OFFSET(utun_qp_max), AV_OPT_TYPE_INT, { .i64 = -1 }, -1, 51, VE | AV_OPT_FLAG_RUNTIME_PARAM },
+     // Static
+     /// Usage
+     { "usage",          "Encoder Usage",        OFFSET(usage),  AV_OPT_TYPE_INT,   { .i64 = -1 }, -1, AMF_VIDEO_ENCODER_USAGE_LOW_LATENCY_HIGH_QUALITY, VE, .unit = "usage" },
+--- a/libavcodec/amfenc_hevc.c
++++ b/libavcodec/amfenc_hevc.c
+@@ -27,6 +27,7 @@
+ #define VE AV_OPT_FLAG_VIDEO_PARAM | AV_OPT_FLAG_ENCODING_PARAM
+ 
+ static const AVOption options[] = {
++    { "utun_qp_max", "Live QP ceiling", OFFSET(utun_qp_max), AV_OPT_TYPE_INT, { .i64 = -1 }, -1, 51, VE | AV_OPT_FLAG_RUNTIME_PARAM },
+     { "usage",                   "Set the encoding usage",                   OFFSET(usage),                          AV_OPT_TYPE_INT,   {.i64 = -1 }, -1, AMF_VIDEO_ENCODER_HEVC_USAGE_LOW_LATENCY_HIGH_QUALITY, VE, .unit = "usage" },
+     { "transcoding",             "Generic Transcoding",                      0, AV_OPT_TYPE_CONST, {.i64 = AMF_VIDEO_ENCODER_HEVC_USAGE_TRANSCODING               }, 0, 0, VE, .unit = "usage" },
+     { "ultralowlatency",         "Ultra low latency usecase",                0, AV_OPT_TYPE_CONST, {.i64 = AMF_VIDEO_ENCODER_HEVC_USAGE_ULTRA_LOW_LATENCY         }, 0, 0, VE, .unit = "usage" },
+--- a/libavcodec/amfenc.c
++++ b/libavcodec/amfenc.c
+@@ -274,6 +274,9 @@
+     av_unused int ret;
+ 
+     ctx->hwsurfaces_in_queue = 0;
++    ctx->utun_qp_applied = -1;
++    if (avctx->codec_id != AV_CODEC_ID_H264 && avctx->codec_id != AV_CODEC_ID_HEVC)
++        ctx->utun_qp_max = -1;
+     ctx->hwsurfaces_in_queue_max = 16;
+ 
+     // configure AMF logger
+@@ -680,6 +683,28 @@
+         }
+     } else if (!ctx->delayed_surface) { // submit frame
+         int hw_surface = 0;
++
++        if (ctx->utun_qp_max >= 0 && ctx->utun_qp_max != ctx->utun_qp_applied) {
++            const wchar_t *max_i, *max_p;
++            if (avctx->codec_id == AV_CODEC_ID_H264) {
++                max_i = AMF_VIDEO_ENCODER_MAX_QP;
++                max_p = AMF_VIDEO_ENCODER_MAX_QP;
++            } else if (avctx->codec_id == AV_CODEC_ID_HEVC) {
++                max_i = AMF_VIDEO_ENCODER_HEVC_MAX_QP_I;
++                max_p = AMF_VIDEO_ENCODER_HEVC_MAX_QP_P;
++            } else {
++                av_log(avctx, AV_LOG_ERROR, "Live QP ceiling is unsupported for codec %d\n", avctx->codec_id);
++                return AVERROR(ENOSYS);
++            }
++            AMF_ASSIGN_PROPERTY_INT64(res, ctx->encoder, max_i, ctx->utun_qp_max);
++            AMF_RETURN_IF_FALSE(ctx, res == AMF_OK, AVERROR_EXTERNAL, "Live I QP ceiling failed: %d\n", res);
++            if (avctx->codec_id == AV_CODEC_ID_HEVC) {
++                AMF_ASSIGN_PROPERTY_INT64(res, ctx->encoder, max_p, ctx->utun_qp_max);
++                AMF_RETURN_IF_FALSE(ctx, res == AMF_OK, AVERROR_EXTERNAL, "Live P QP ceiling failed: %d\n", res);
++            }
++            ctx->utun_qp_applied = ctx->utun_qp_max;
++            av_log(avctx, AV_LOG_INFO, "Live QP ceiling applied qp=%d\n", ctx->utun_qp_max);
++        }
+ 
+         // prepare surface from frame
+         switch (frame->format) {

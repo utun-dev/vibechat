@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="files_title">Файлы группы</string>
+    <string name="files_mine">Мои файлы</string>
+    <string name="files_member">Файлы участника</string>
+    <string name="files_members">Участники</string>
+    <string name="files_server">Хранилище: %1$s</string>
+    <string name="files_choose_server">Выбрать хранилище</string>
+    <string name="files_no_server">В этой группе нет узла-хранителя</string>
+    <string name="files_server_missing">Выбранное хранилище больше недоступно. Выберите другое.</string>
+    <string name="files_loading">Загрузка каталога…</string>
+    <string name="files_empty">Папка пуста</string>
+    <string name="files_refresh">Обновить</string>
+    <string name="files_add">Добавить файлы или папку</string>
+    <string name="files_upload">Загрузить файлы</string>
+    <string name="files_folder">Создать папку</string>
+    <string name="files_folder_type">Папка</string>
+    <string name="files_rename">Переименовать</string>
+    <string name="files_name">Имя</string>
+    <string name="files_open">Открыть</string>
+    <string name="files_save">Сохранить на устройство</string>
+    <string name="files_share">Поделиться</string>
+    <string name="files_properties">Свойства</string>
+    <string name="files_property_values">%1$s
+Размер: %2$s
+Изменён: %3$s
+Владелец: %4$s</string>
+    <string name="files_delete_confirm">Удалить «%1$s»? Можно удалять только пустые папки.</string>
+    <string name="files_replace_title">Заменить файл?</string>
+    <string name="files_replace_confirm">«%1$s» уже существует в этом хранилище. Заменить?</string>
+    <string name="files_replace">Заменить</string>
+    <string name="files_skip">Пропустить</string>
+    <string name="files_preparing">Подготовка…</string>
+    <string name="files_transferring">Передача…</string>
+    <string name="files_saving">Сохранение на устройство…</string>
+    <string name="files_completed">Завершено</string>
+    <string name="files_cancelled">Отменено</string>
+    <string name="files_failed">Ошибка</string>
+    <string name="files_batch">Файл %1$d из %2$d</string>
+    <string name="files_summary">Загружено: %1$d · пропущено: %2$d</string>
+    <string name="files_bytes">%1$s / %2$s</string>
+    <string name="files_quota">Занято в хранилище по всем группам: %1$s / %2$s</string>
+    <string name="files_quota_reserved">Зарезервировано для загрузок: %1$s</string>
+    <string name="files_read_only">Файлы этого участника доступны для чтения</string>
+    <string name="files_service_directory">Служебная папка · только чтение</string>
+    <string name="files_ready">Файл готов: %1$s</string>
+    <string name="files_external_failed">Не удалось открыть или передать файл. Попробуйте сохранить его на устройство.</string>
+    <string name="files_error_access">Доступ запрещён</string>
+    <string name="files_error_missing">Файл или папка не найдены</string>
+    <string name="files_error_path">Недопустимое имя файла или папки</string>
+    <string name="files_error_range">Недопустимый размер или диапазон файла</string>
+    <string name="files_error_exists">Файл или папка с таким именем уже существуют</string>
+    <string name="files_error_busy">Хранилище занято. Попробуйте ещё раз.</string>
+    <string name="files_error_stale">Файл или папка изменились. Обновите список и повторите действие.</string>
+    <string name="files_error_space">Недостаточно места или превышена квота</string>
+    <string name="files_error_io">Не удалось прочитать или записать файл</string>
+    <string name="files_error_packet">Некорректный ответ хранилища</string>
+    <string name="files_error_hash">Проверка целостности файла не пройдена</string>
+    <string name="files_error_timeout">Хранилище не ответило вовремя</string>
+    <string name="files_error_nonempty">Папка не пуста</string>
+</resources>

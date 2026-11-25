@@ -1,0 +1,104 @@
+Аудит utun_instance — 26.10.2026
+
+Объём
+Полностью прочитаны utun_instance.c/.h и прежний utun_instance_doc.md; сверены
+вызовы конструкторов/start/stop/reload из CLI/встраивания и связанные механизмы
+ETCP/NCD/STCP, sockets, logger, очередей, SQLite и независимых сервисов.
+Заголовок и документ переписаны по фактическому коду. Core-разделы
+doc/service_lifecycle.md согласованы; весь поперечный документ остаётся [~].
+Это не полный аудит реализаций chat/call/radio/stream или GUI/Android.
+
+Исправления
+- Activity/peer-sleep подписки удерживают снятые записи до выхода из внешней
+  рассылки. Безопасны удаление себя/соседа, вложенное событие и добавление новой
+  подписки. Повтор fn+arg не дублируется; более новая эффективная activity
+  отменяет остаток старой рассылки. OOM обеих подписок логируется.
+- Конструкторы проверяют UASYNC/config/path до побочных действий; общий путь
+  создания освобождает частичные ресурсы, сохраняя caller config при отказе.
+  Проверяются crypto derivation, запись/close временного файла, создание каталогов
+  и индекс сетей. Старый TCP-реестр индексируется по node_id, а не указателю link.
+- Выбранный путь общего logger копируется в постоянный буфер; освобождение config
+  больше не оставляет заимствованную строку в logger. Уже открытый файловый logger
+  сохраняет первый путь при создании/reload другого instance.
+- Reload готовит config/firewall/networks до изменения ресурсов. Смена владельцев
+  (в том числе db_path, control, TUN/NAT/proxy), подсетей или automatic server-конфига
+  пересоздаёт ядро с прежними core/UTUN/chat/running. Повторные имена server также
+  выбирают полный путь, сохраняя отдельные секции parser без неоднозначного matching.
+- Manual reload сравнивает все server-параметры и IPv6 scope по конфигурации,
+  сохраняя неизменённые sockets/ephemeral ports. TCP listener закрывается вместе
+  с правильной TCP-моделью; UDP создаётся/удаляется своим API. Устранён лог через
+  освобождённое имя. Probe и endpoints других владельцев не удаляются по отсутствию
+  server-секции. Конфигурационные clients обновляются также без UTUN; неизменённые
+  handles/таймеры сохраняются, копии не ссылаются на освобождённый config.
+- Destroy обходит sockets/connections от свежей головы после callbacks,
+  освобождает старые TCP queue entries и оставшиеся transport-подписки.
+  Повторный destroy/start/reload при разрушении отклоняется; SQLite close ошибки
+  видны, BUSY завершается close_v2 до финализации заимствованных SQL-объектов.
+- Три headless bind разбираются одинаково: IPv4 literal, полный decimal port
+  0..65535. Port=0 выбирает ОС; плохое значение не открывает порт по умолчанию.
+  Отказ listener не фатален для чата, частичный контекст очищается.
+- Call/radio headless stop освобождает контекст/кодеки, снимает клиентов с UASYNC
+  и отменяет cleanup/mix таймеры. Их отказы при старте дают rollback.
+- UBSan нашёл невыровненный PCM после 11-байтового headless заголовка и uint64_t
+  hop-list в radio_recv. Оба читаются через выровненное хранилище; тест рации также
+  использует memcpy вместо int16_t* к невыровненному payload. Wire не менялся.
+- Из заголовка удалено объявление несуществующего utun_instance_run; poll принадлежит
+  caller. Уточнены владение, состояния, ошибки init/reload, подписки и диагностика.
+
+Контракты и ограничения
+Все lifecycle операции выполняются в потоке своего UASYNC, stop/destroy/reload —
+вне callbacks останавливаемых модулей. UASYNC принадлежит caller и живёт до конца
+очистки. Core start при отказе сохраняет подготовленные ресурсы для retry/destroy;
+init при отказе позднего сервиса сохраняет ранее запущенные сервисы.
+Create уже выполняет I/O и создаёт listeners/SQLite/router/proxy/monitoring.
+Create_from_str требует временного файла /tmp и не является чистым buffer parser.
+Logger общий для процесса; его изменения и config updater не входят в транзакцию reload.
+
+Partial reload не атомарен: отказ endpoint сохраняет новый config и отсутствие
+endpoint для следующей попытки. Подготовка clients при ошибке сохраняет прежние
+самостоятельные handles. Full reload возвращает NULL, если новое ядро не удалось
+создать/запустить после уничтожения старого; caller использует возвращённый указатель.
+Порядок списков/padding модели может консервативно выбрать restart. IPv6 selector
+temporary/permanent меняет адрес в модели при разрешении, поэтому повторный reload
+может консервативно пересоздать такой endpoint.
+Caller завершает borrowed statements/backups; close_v2 не разрешает использовать
+уничтоженный instance. Живые ресурсы в diagnose_leaks сами по себе не доказывают утечку.
+Отменённые heap-таймеры UASYNC освобождаются при следующем poll, а pool cache — при
+уничтожении UASYNC; тест сверяет active/counters и общий баланс после обоих шагов.
+
+Проверки
+- Полная обычная сборка PASS: /tmp/utun-instance-audit-build-final.log.
+- Первый полный check.sh: 196/196 PASS, 0 failed/0 skipped; proxy9/9, burst1/1,
+  load8/8, 134217728 байт, 189с; /tmp/utun-instance-audit-final-check.log.
+  Он предшествовал последней правке выравнивания radio hop-list.
+- Профиль после исправлений: test_instance_contract, test_services, test_ncd_config,
+  test_tun_route, test_etcp_transport, test_stcp, test_node_conn_direct,
+  test_call_headless, test_radio_headless PASS; три изменённых адресных теста
+  повторены в /tmp/utun-instance-audit-final-test_*.log.
+- Новый test_instance_contract проверяет nested callbacks/OOM, constructor ownership,
+  правильный TCP queue index, неизменённые ephemeral endpoints, malformed config,
+  отказ network queue/create endpoint с retry, UDP/TCP замену и удаление listener,
+  duplicate server names, full reload с сохранением stopped/core-only состояния,
+  SQLite BUSY/finalize, другой UASYNC, db_path restart, recursive mkdir и жизнь
+  logger path после освобождения config. Headless: три port=0, реальные TCP-клиенты,
+  stop/start с сохранением SQLite, три timer faults и malformed binds.
+- ASAN/UBSan/LSan 11/11 PASS, detect_leaks=1, halt_on_error=1:
+  те же девять instance/transport/headless тестов плюс config_parser/config_updater.
+  Итог: /tmp/utun-instance-audit-asan-results-complete.log; отдельные логи
+  /tmp/utun-instance-audit-asan-complete-test_*.log.
+  Отдельная копия /tmp/utun-config-instance-asan-20261026, все lib/src/Opus
+  инструментированы согласованно. Встроенный Opus не перекрывает CFLAGS в этой
+  тестовой копии; рабочая normal-сборка с sanitizer-объектами не смешивалась.
+  Сборки: /tmp/utun-instance-audit-asan-build.log,
+  /tmp/utun-instance-audit-asan-core-final.log и ...-asan-tests-build.log.
+  Ранние наборы 9/11 и 10/11 выявили описанные alignment defects; окончательный
+  набор после исправления обеих причин полностью PASS.
+- git diff --check PASS. Нативные Windows/FreeBSD сборки/runtime, GUI/Android и
+  аппаратные TUN/media в этом этапе не запускались; Linux TUN lifecycle проверен mock-тестом.
+
+Окончательный штатный check.sh после последней правки: 196/196 PASS,
+0 failed/0 skipped, proxy9/9, burst1/1, load8/8, 134217728 байт, 173с.
+Лог /tmp/utun-instance-audit-complete-check.log. После этого изменены только комментарии
+о повторном core_start (он сохраняет running) и итоговые документы/чек-лист.
+utun_instance.h и utun_instance_doc.md отмечены [V]; ограничения общего документа
+service_lifecycle.md и прежние записи остальных модулей сохранены.

@@ -1,0 +1,24 @@
+--- test_etcp_simple_traffic.c.backup
++++ test_etcp_simple_traffic.c
+@@ -243,12 +243,19 @@
+     DEBUG_DEBUG(DEBUG_CATEGORY_ETCP, "Parsing crypto keys: priv_len=%zu, pub_len=%zu", 
+                 strlen(priv_key_hex), strlen(pub_key_hex));
+     
++    // Validate key string lengths to prevent buffer overflow
++    if (strlen(priv_key_hex) != 64 || strlen(pub_key_hex) != 128) {
++        DEBUG_ERROR(DEBUG_CATEGORY_ETCP, "Invalid key string lengths: priv=%zu, pub=%zu", 
++                    strlen(priv_key_hex), strlen(pub_key_hex));
++        return NULL;
++    }
++
+     // Parse keys
+     for (int i = 0; i < 32; i++) {
+         if (sscanf(&priv_key_hex[i*2], "%2hhx", &inst->instance->my_keys.private_key[i]) != 1) {
+             DEBUG_ERROR(DEBUG_CATEGORY_ETCP, "Failed to parse private key byte %d", i);
+         }
+     }
+     for (int i = 0; i < 64; i++) {
+         if (sscanf(&pub_key_hex[i*2], "%2hhx", &inst->instance->my_keys.public_key[i]) != 1) {
+             DEBUG_ERROR(DEBUG_CATEGORY_ETCP, "Failed to parse public key byte %d", i);
+         }
+     }

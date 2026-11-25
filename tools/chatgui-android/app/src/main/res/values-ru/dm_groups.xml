@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dm_members_title">Устройства беседы</string>
+    <string name="dm_my_devices">Мои устройства</string>
+    <string name="dm_peer_devices">Устройства собеседника</string>
+    <string name="dm_members_unavailable">Не удалось обновить список устройств</string>
+    <string name="dm_mode_title">Устройства для этой беседы</string>
+    <string name="dm_mode_groups">С подгруппами устройств</string>
+    <string name="dm_mode_device">Только эти устройства</string>
+    <string name="dm_download">Скачать</string>
+    <string name="dm_file_unavailable">Файл недоступен</string>
+    <string name="dm_archived">Вы вышли из подгруппы. Сохранённая история остаётся доступной.</string>
+</resources>

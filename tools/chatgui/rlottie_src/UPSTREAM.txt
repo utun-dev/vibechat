@@ -1,0 +1,14 @@
+Source: https://github.com/Samsung/rlottie
+Revision: ea06d2f29ba01b8d06c00a838d107f5e484ae59b
+Imported: 2026-10-05
+
+Local CMake changes:
+- Minimum version 3.16, matching ChatGUI and compatible with CMake 4.
+- Link Shlwapi by library name so MinGW resolves its import library.
+
+Prepare and build from tools/chatgui:
+python3 ../prepare_dependencies.py --only rlottie --if-needed --jobs 4
+
+Sources are downloaded at the pinned revision and patched with tools/dependency_patches/rlottie.patch.
+Only license notices and this provenance file remain tracked in rlottie_src.
+The Windows and Unix ChatGUI build scripts prepare rlottie automatically before building ChatGUI.

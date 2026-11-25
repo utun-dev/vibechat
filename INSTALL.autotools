@@ -1,0 +1,40 @@
+BUILDING WITH GNU AUTOTOOLS
+===========================
+
+Prerequisites:
+  - GNU Autotools (autoconf, automake, libtool)
+  - C compiler (gcc or clang)
+  - OpenSSL development libraries
+  - Python 3.9+, curl and tar for the pinned libsodium 1.0.22 dependency
+    used to validate CHAT group public keys. The build links libsodium
+    statically. MinGW x64 uses the upstream archive for Windows.
+  - Linux kernel headers (for TUN/TAP)
+
+Quick Build:
+  ./autogen.sh           # Only needed first time
+  ./configure           # Configure build
+  make                  # Build everything
+  make check            # Run tests
+  sudo make install     # Install to system
+
+Configuration Options:
+  --prefix=PATH         Install prefix (default: /usr/local)
+  --enable-debug        Enable debug output
+  --disable-tests       Skip test compilation
+  CFLAGS="-O2"          Set custom compiler flags
+  SODIUM_PREFIX=PATH    Use an already prepared target prefix containing
+                        include/sodium.h and lib/libsodium.a. By default,
+                        configure prepares this prefix in the build tree.
+
+Files Generated:
+  configure       - Configuration script
+  config.h        - Configuration header
+  Makefile        - Build rules
+  config.log      - Configuration log
+  config.status   - Configuration status
+
+Maintainers:
+  To update build system after changes:
+    autoreconf -fiv
+
+For more info: https://www.gnu.org/software/automake/manual/

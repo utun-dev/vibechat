@@ -1,0 +1,345 @@
+#!/usr/bin/env python3
+"""chatcli — uTun headless chat CLI client
+
+Usage:
+  chatcli [--host HOST] [--port PORT] <command> [args...]
+
+Environment:
+  CHATCLI_HOST  — default host (default: 127.0.0.1)
+  CHATCLI_PORT  — default port (default: 9999)
+
+Commands (see chatcli_commands.txt for full description):
+  ping                             alive check
+  status                           node info, connections, NTP
+  channels                         list all channels
+  members <ch_id>                  list members with full state
+  messages <ch_id> [count]         read last messages
+  send <ch_id> <text>              send text message
+  poll <ch_id> <question> <option1> <option2> ... [--multiple] [--custom]
+  vote <ch_id> <message_id> [option_id ...] [--custom <text>]
+  react <ch_id> <message_id> [emoji_or_id] [--off] [--clear]
+  feedback <ch_id> <message_id>    poll results and reactions
+  reactions                       available emoji IDs
+  attach <ch_id> <path> [--video]  send a file (or video) as attachment
+  invite <ch_id> [Ed25519_64hex]         create invite link (auto best node by default)
+  invite_nodes <ch_id>             list reachable nodes for invite
+  server_link                      get this server's link with its persistent access key
+  server_add <ch_id> <utun://...>   add our channel on the server identified by its link
+  connect <utun://...>             join channel via invite link
+  create <name> [chat|kanban]      create a group
+  board <ch_id>                   read a kanban board
+  kanban <ch_id> <JSON>            execute a kanban operation
+  card_history <ch_id> <card_id>   read the retained operation history
+  rename <ch_id> <name>             rename a channel, preserving extra options
+  group_info <ch_id> [JSON]         read or replace signed group description
+  invite_to <ch_id> <Ed25519_64hex> <ip:port> [proto]
+                                   invite a node to add our channel
+  dm_start <Ed25519_64hex> [ch_id] [--mode device|groups]
+  dm_list                          list DM conversations
+  dm_messages <conv_id> [count]    read DM messages (decrypted)
+  dm_send <conv_id> <text>         send DM text message
+  dm_file <conv_id> <author_Ed25519_64hex> <seq> <generation> <download|opened>
+  listen                           interactive event listener
+"""
+
+import sys, os, json, socket, struct, argparse
+
+DEFAULT_HOST = os.environ.get("CHATCLI_HOST", "127.0.0.1")
+DEFAULT_PORT = int(os.environ.get("CHATCLI_PORT", "9999"))
+TIMEOUT = 3
+
+def _connect():
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.settimeout(TIMEOUT)
+    try:
+        s.connect((DEFAULT_HOST, DEFAULT_PORT))
+    except (socket.timeout, ConnectionRefusedError, OSError) as e:
+        print(f"ERROR: cannot connect to {DEFAULT_HOST}:{DEFAULT_PORT} — {e}", file=sys.stderr)
+        sys.exit(1)
+    return s
+
+def _readline(s):
+    buf = b""
+    while True:
+        try:
+            ch = s.recv(1)
+        except socket.timeout:
+            break
+        if not ch:
+            break
+        if ch == b"\n":
+            break
+        buf += ch
+    return buf.decode("utf-8", errors="replace")
+
+def _send(s, js):
+    s.sendall(js.encode())
+
+def _req(cmd, **params):
+    s = _connect()
+    js = {"id": 1, "cmd": cmd}
+    js.update(params)
+    _send(s, json.dumps(js, ensure_ascii=True) + "\n")
+    resp = _readline(s)
+    s.close()
+    try:
+        obj = json.loads(resp)
+    except json.JSONDecodeError:
+        print(f"RAW: {resp}")
+        return
+    if obj.get("ok"):
+        data = obj.get("data", {})
+        if isinstance(data, str):
+            print(data)
+        else:
+            print(json.dumps(data, indent=2, ensure_ascii=False))
+    else:
+        print(f"ERROR: {obj.get('error', 'unknown')}", file=sys.stderr)
+        sys.exit(1)
+
+def cmd_ping():
+    _req("ping")
+
+def cmd_status():
+    _req("status")
+
+def cmd_channels():
+    _req("channels")
+
+def cmd_members(ch_id):
+    _req("members", ch=ch_id)
+
+def cmd_messages(ch_id, count=None):
+    params = {"ch": ch_id}
+    if count:
+        params["count"] = int(count)
+    _req("messages", **params)
+
+def cmd_send(ch_id, text):
+    _req("send", ch=ch_id, content_type="text", data=text)
+
+def cmd_attach(ch_id, path, as_video=False, content_type=None):
+    params = {"ch": ch_id, "path": path, "as_video": 1 if as_video else 0}
+    if content_type:
+        params["content_type"] = content_type
+    _req("attach", **params)
+
+def cmd_invite(ch_id, address=None):
+    params = {"ch": ch_id}
+    if address:
+        params["ed25519"] = address
+    _req("invite", **params)
+
+def cmd_invite_nodes(ch_id):
+    _req("invite_nodes", ch=ch_id)
+
+def cmd_group_policy(args):
+    if len(args) < 2 or len(args) > 4 or args[1] not in ("admins", "all"):
+        _die("usage: group_policy <ch_id> <admins|all> [preview_token [keep_id,keep_id,...]]")
+    params = {"ch": args[0], "all_members": int(args[1] == "all")}
+    if len(args) >= 3:
+        params["token"] = args[2]
+    params["keep"] = json.dumps(args[3].split(",") if len(args) == 4 and args[3] else [])
+    _req("group_policy", **params)
+
+def cmd_connect(link):
+    _req("connect", link=link)
+
+def cmd_server_add(ch_id, link):
+    _req("server_add", ch=ch_id, link=link)
+
+def cmd_create(name, group_type="chat"):
+    _req("create_channel", name=name, group_type=group_type)
+
+def cmd_invite_to(ch_id, address, addr, proto=None):
+    params = {"ch": ch_id, "ed25519": address, "addr": addr}
+    if proto:
+        params["proto"] = int(proto)
+    _req("invite_to", **params)
+
+def cmd_dm_start(args):
+    parser = argparse.ArgumentParser(prog="chatcli dm_start")
+    parser.add_argument("ed25519")
+    parser.add_argument("ch", nargs="?")
+    parser.add_argument("--mode", choices=("device", "groups"), default="device")
+    options = parser.parse_args(args)
+    params = {"ed25519": options.ed25519, "mode": options.mode}
+    if options.ch:
+        params["ch"] = options.ch
+    _req("dm_start", **params)
+
+def cmd_dm_list():
+    _req("dm_list")
+
+def cmd_dm_messages(conv_id, count=None):
+    params = {"conv_id": conv_id}
+    if count:
+        params["count"] = int(count)
+    _req("dm_messages", **params)
+
+def cmd_dm_send(conv_id, text):
+    _req("dm_send", conv_id=conv_id, data=text)
+
+def cmd_dm_file(args):
+    parser = argparse.ArgumentParser(prog="chatcli dm_file")
+    for name in ("conv_id", "author", "seq", "generation"):
+        parser.add_argument(name)
+    parser.add_argument("action", choices=("download", "opened"))
+    _req("dm_file", **vars(parser.parse_args(args)))
+
+def cmd_interaction(cmd, args):
+    parser = argparse.ArgumentParser(prog="chatcli " + cmd)
+    if cmd == "reactions":
+        parser.parse_args(args)
+        _req("reaction_catalog")
+        return
+    parser.add_argument("ch")
+    if cmd == "poll":
+        parser.add_argument("question")
+        parser.add_argument("options", nargs="+")
+        parser.add_argument("--multiple", action="store_true")
+        parser.add_argument("--custom", action="store_true")
+    else:
+        parser.add_argument("message_id")
+        if cmd == "vote":
+            parser.add_argument("choices", nargs="*", type=int, help="option IDs from feedback (start at 0)")
+            parser.add_argument("--custom", default="")
+        elif cmd == "react":
+            parser.add_argument("emoji", nargs="?")
+            parser.add_argument("--off", action="store_true")
+            parser.add_argument("--clear", action="store_true")
+    values = parser.parse_args(args)
+    if cmd == "poll":
+        _req("poll_create", ch=values.ch, question=values.question, options=values.options,
+             mode="multiple" if values.multiple else "single", allow_custom_answer=values.custom)
+    elif cmd == "vote":
+        _req("vote", ch=values.ch, message_id=values.message_id, choices=values.choices, custom=values.custom)
+    elif cmd == "react":
+        if not values.clear and values.emoji is None:
+            parser.error("specify an emoji or --clear")
+        emoji = int(values.emoji) if values.emoji and values.emoji.isdigit() else values.emoji
+        _req("react", ch=values.ch, message_id=values.message_id, emoji=emoji, on=not values.off, clear=values.clear)
+    else:
+        _req("feedback", ch=values.ch, message_id=values.message_id)
+
+def cmd_listen():
+    print(f"Listening on {DEFAULT_HOST}:{DEFAULT_PORT} (Ctrl+C to quit)")
+    s = _connect()
+    _send(s, json.dumps({"id": 1, "cmd": "subscribe", "enable": 1}) + "\n")
+    try:
+        while True:
+            line = _readline(s)
+            if not line:
+                break
+            try:
+                obj = json.loads(line)
+            except json.JSONDecodeError:
+                print(line)
+                continue
+            evt = obj.get("event", "")
+            if evt == "msg":
+                print(f"[{obj.get('ch','?')}] {obj.get('author_id','?')}:  new message")
+            elif evt == "members_changed":
+                print(f"[{obj.get('ch','?')}] members changed")
+            elif evt == "channel_updated":
+                print(f"[{obj.get('ch','?')}] channel updated")
+            elif evt == "invite_received":
+                print(f"INVITE: ch={obj.get('ch','?')} name={obj.get('ch_name','?')} from={obj.get('from_id','?')}")
+            elif evt == "dm_msg":
+                print(f"DM[{obj.get('conv','?')}] from={obj.get('author_id','?')}: new message")
+            elif evt == "dm_conv":
+                print(f"DM[{obj.get('conv','?')}] conversation updated")
+            else:
+                print(json.dumps(obj, indent=2, ensure_ascii=False))
+    except KeyboardInterrupt:
+        print("\nDisconnected.")
+    finally:
+        s.close()
+
+def main():
+    args = sys.argv[1:]
+    i = 0
+    while i < len(args):
+        if args[i] == "--host" and i + 1 < len(args):
+            global DEFAULT_HOST; DEFAULT_HOST = args[i + 1]; i += 2
+        elif args[i] == "--port" and i + 1 < len(args):
+            global DEFAULT_PORT; DEFAULT_PORT = int(args[i + 1]); i += 2
+        else:
+            break
+    args = args[i:]
+
+    if not args or args[0] in ("help", "--help", "-h"):
+        print(__doc__)
+        sys.exit(0)
+
+    cmd = args[0]
+    try:
+        if cmd == "ping":              cmd_ping()
+        elif cmd in ("poll", "vote", "react", "feedback", "reactions"): cmd_interaction(cmd, args[1:])
+        elif cmd == "devgroup":
+            parser = argparse.ArgumentParser(prog="chatcli devgroup")
+            sub = parser.add_subparsers(dest="action", required=True)
+            sub.add_parser("status"); sub.add_parser("leave")
+            rename = sub.add_parser("rename"); rename.add_argument("name")
+            invite = sub.add_parser("invite"); invite.add_argument("ch"); invite.add_argument("peer")
+            accept = sub.add_parser("accept"); accept.add_argument("invite")
+            opts = vars(parser.parse_args(args[1:])); action = opts.pop("action")
+            if action == "accept":
+                import getpass
+                opts["pin"] = getpass.getpass("PIN shown on the other device: ")
+            if action == "invite" and (len(opts["peer"]) != 64 or any(c not in "0123456789abcdefABCDEF" for c in opts["peer"])):
+                parser.error("peer must be a 64-digit Ed25519 public key")
+            _req("devgroup_" + action, **opts)
+        elif cmd == "status":          cmd_status()
+        elif cmd == "channels":        cmd_channels()
+        elif cmd == "rename":
+            if len(args) != 3: _die('usage: rename <ch_id> "New name"')
+            _req("rename_channel", ch=args[1], name=args[2])
+        elif cmd == "board":
+            if len(args) != 2: _die("usage: board <ch_id>")
+            _req("kanban_board", ch=args[1])
+        elif cmd == "kanban":
+            if len(args) != 3: _die("usage: kanban <ch_id> <JSON>")
+            _req("kanban_command", ch=args[1], operation=args[2])
+        elif cmd == "card_history":
+            if len(args) != 3: _die("usage: card_history <ch_id> <card_id>")
+            _req("kanban_history", ch=args[1], entity=args[2])
+        elif cmd == "group_info":
+            if len(args) not in (2, 3): _die('usage: group_info <ch_id> [\'{"name":"Group","ver":2,...}\']')
+            _req("group_info", ch=args[1], **({"description": args[2]} if len(args) == 3 else {}))
+        elif cmd == "members":         cmd_members(*args[1:2] if len(args) > 1 else (_die("usage: members <ch_id>"),))
+        elif cmd in ("messages","msgs"): cmd_messages(*args[1:3] if len(args) > 1 else (_die("usage: messages <ch_id> [count]"),))
+        elif cmd == "send":            cmd_send(*args[1:3] if len(args) > 2 else (_die("usage: send <ch_id> <text>"),))
+        elif cmd == "attach":
+            if len(args) < 3:
+                _die("usage: attach <ch_id> <path> [--video]")
+            as_video = "--video" in args
+            path = args[2]
+            cmd_attach(args[1], path, as_video)
+        elif cmd == "invite":          cmd_invite(*args[1:3] if len(args) > 1 else (_die("usage: invite <ch_id> [Ed25519_64hex]"),))
+        elif cmd == "invite_nodes":    cmd_invite_nodes(*args[1:2] if len(args) > 1 else (_die("usage: invite_nodes <ch_id>"),))
+        elif cmd == "group_policy":    cmd_group_policy(args[1:])
+        elif cmd == "server_link":     _req("server_link")
+        elif cmd == "server_add":      cmd_server_add(*args[1:3] if len(args) > 2 else (_die("usage: server_add <ch_id> <utun://...>"),))
+        elif cmd in ("connect","join"): cmd_connect(*args[1:2] if len(args) > 1 else (_die("usage: connect <utun://...>"),))
+        elif cmd == "create":          cmd_create(*args[1:3] if len(args) > 1 else (_die("usage: create <name>"),))
+        elif cmd == "invite_to":       cmd_invite_to(*args[1:5] if 4 <= len(args) <= 5 else (_die("usage: invite_to <ch_id> <Ed25519_64hex> <ip:port> [proto]"),))
+        elif cmd == "dm_start":        cmd_dm_start(args[1:])
+        elif cmd == "dm_file":         cmd_dm_file(args[1:])
+        elif cmd == "dm_list":         cmd_dm_list()
+        elif cmd in ("dm_messages","dm_msgs"): cmd_dm_messages(*args[1:3] if len(args) > 1 else (_die("usage: dm_messages <conv_id> [count]"),))
+        elif cmd == "dm_send":         cmd_dm_send(*args[1:3] if len(args) > 2 else (_die("usage: dm_send <conv_id> <text>"),))
+        elif cmd == "listen":          cmd_listen()
+        else:                          print(f"Unknown command: {cmd}\nUse --help for usage", file=sys.stderr); sys.exit(1)
+    except socket.timeout:
+        print(f"ERROR: timeout ({TIMEOUT}s) connecting to {DEFAULT_HOST}:{DEFAULT_PORT}", file=sys.stderr)
+        sys.exit(1)
+    except ConnectionRefusedError:
+        print(f"ERROR: connection refused at {DEFAULT_HOST}:{DEFAULT_PORT} — is uTun running with headless_control_bind?", file=sys.stderr)
+        sys.exit(1)
+
+def _die(msg):
+    print(msg, file=sys.stderr); sys.exit(1)
+
+if __name__ == "__main__":
+    main()

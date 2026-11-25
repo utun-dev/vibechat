@@ -1,0 +1,39 @@
+uTun licensing
+==============
+
+The original uTun source code, including its command-line, desktop and Android
+applications, is licensed under the GNU General Public License, version 3 only
+(GPL-3.0-only), with the additional permission for Wintun below.
+
+uTun is free software: you can redistribute it and/or modify it under the terms
+of the GNU General Public License as published by the Free Software Foundation,
+version 3 of the License.
+
+uTun is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
+without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+PURPOSE. See the GNU General Public License for more details.
+
+The complete GNU GPL version 3 is provided in LICENSE. Copyright remains with
+the respective authors. Third-party code and binaries retain their own licenses
+and copyright notices; see THIRD_PARTY_NOTICES and the notices in their files.
+
+Additional permission under GNU GPL version 3 section 7
+------------------------------------------------------
+
+If you modify this Program, or any covered work, by linking or combining it with
+Wintun (or a modified version of that library), containing parts covered by the
+terms of the Wintun Prebuilt Binaries License, the licensors of this Program
+grant you additional permission to convey the resulting work.
+
+This permission applies to the original uTun code. It does not change the
+license of Wintun or grant rights to modify its prebuilt binaries. Wintun must
+be used and distributed in accordance with its own license, through its
+Permitted API. No exception is granted for any other library.
+
+Distribution
+------------
+
+Include LICENSE, LICENSING and THIRD_PARTY_NOTICES with source and binary
+distributions. For GPL-covered binaries, also provide Corresponding Source
+as required by GNU GPL version 3; including these documents does not replace
+that requirement. Preserve upstream notices when updating bundled libraries.

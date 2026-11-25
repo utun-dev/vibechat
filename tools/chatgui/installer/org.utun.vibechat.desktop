@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+Name=VibeChat
+Comment=Peer-to-peer messenger
+Comment[ru]=Одноранговый мессенджер
+Exec=/opt/vibechat/bin/vibechat -- %u
+TryExec=/opt/vibechat/bin/vibechat
+Icon=org.utun.vibechat
+Terminal=false
+Categories=Network;InstantMessaging;
+MimeType=x-scheme-handler/utun;
+StartupWMClass=vibechat

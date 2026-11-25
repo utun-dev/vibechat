@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Непрозрачный фон заполняет любую маску лаунчера, включая круг. -->
+    <background>
+        <shape android:shape="rectangle">
+            <gradient android:angle="315" android:startColor="#102B73"
+                android:centerColor="#15104B" android:endColor="#080D30" />
+        </shape>
+    </background>
+    <foreground>
+        <!-- Рисунок занимает 84 из 108 частей слоя; пузырь и волны остаются внутри круга 72. -->
+        <inset android:inset="11.111111%">
+            <bitmap android:src="@mipmap/ic_launcher" android:gravity="fill" android:filter="true" />
+        </inset>
+    </foreground>
+</adaptive-icon>

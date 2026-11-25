@@ -1,0 +1,55 @@
+Аудит config_parser — 26.10.2026
+
+Полностью прочитаны config_parser.c/.h, config_parser_doc.md и общий config_ini.h.
+Для согласования строгого разбора также повторно сверены config_updater.c/.h/_doc.md.
+Разбор сохраняет модель и владение free_config; запуск ресурсов остаётся у instance.
+
+Исправления
+- IPv6 /32 больше не подменяется /128; префиксы проверяются до сужения к uint8_t.
+  Control allow=/0 задаёт нулевую маску без сдвига на 32; IPv6 control allow отклоняется.
+- Ошибки известных обработчиков и выделения памяти отклоняют всю модель.
+  Все частичные списки освобождаются, включая client links и не завершённую секцию.
+- Числа проверяются целиком до преобразования: знаки, хвост, диапазон и overflow.
+  Keepalive interval помещается в uint16_t; таймеры ограничены до умножения.
+  Bool унифицирован: 0/1, no/yes, false/true. Версия — ровно три десятичных октета.
+- Адресные порты проверяются как decimal 0..65535, SOCKS — 1..65535.
+  Control ip/port даёт одинаковый результат в обоих порядках; ошибки getaddrinfo не теряются.
+- Storage sizes проверяют UINT64_MAX, множитель M/G и полный хвост; -1 не становится безлимитом,
+  переполнение не становится нулевым лимитом. Слишком длинные строковые настройки отклоняются.
+- Network ID ограничен 56 битами; требуются оба 32-byte HEX ключа.
+  Предоставленные ключи идентичности/пиров проверяются целиком; пустые необязательные остаются незаданными.
+- CFG_CLIENT_LINK сохраняет имя local_srv. Повторный обычный addr сбрасывает режим dynamic IPv6.
+- Флаг tcp_proxy_client enabled=no не включается снова следующей опцией той же секции.
+  Наличие service-секции задаёт её default enable и при отсутствии опций.
+- Print_config не печатает private/signing keys; Networks выведены за пределы firewall-цикла.
+  Устаревший append ключей проверяет вход, запись и fclose; не объявляется атомарным updater.
+- Updater выбирает итоговую идентичность/REALITY по последнему вхождению, но исправляет также
+  синтаксически плохие ранние дубли выбранными значениями. Из-за такого дубля ключи не генерируются заново.
+  Это нужно, поскольку строгий парсер проверяет каждое вхождение. Булевы REALITY enabled согласованы.
+
+Контракты и ограничения
+Обновлены заголовок и документ: порядок списков, необъединяемые named-секции, remote-only links,
+синхронный DNS и первый getaddrinfo-адрес, Windows socket init, default-значения и границы,
+повторные опции, поведение неизвестных секций/debug/gui и независимость parser/updater/start.
+Bootstrap invite printer использует конфигурационные адреса и нулевые channel_id/join_key;
+это не снимок фактических bind/NAT-адресов и не invite конкретного канала.
+Нативные сборки/runtime Windows и FreeBSD в этом этапе не выполнялись.
+
+Проверки
+- Полный check.sh: 195/195 PASS, 0 failed/0 skipped, proxy9/9, burst1/1, load8/8,
+  134217728 байт, 169 секунд; /tmp/config-instance-audit-first-check.log.
+- Профиль 6/6 PASS: config_parser, config_updater, config_debug, reality_config, ncd_config, services.
+- Test_config_parser: 53 ошибочных конфигурации отвергнуты одинаково из файла/буфера;
+  10 отказов аллокаций с полным rollback, IPv4/IPv6 CIDR и control order, предельные размеры/порты,
+  скрытие секретов и /dev/full при append; баланс памяти сохранён.
+- ASAN/UBSan/LSan: те же 6/6 PASS с detect_leaks=1/ halt_on_error=1.
+  Все встроенные lib/src/Opus инструментированы согласованно в отдельной копии
+  /tmp/utun-config-instance-asan-20261026; рабочие объекты не смешивались с sanitizer-объектами.
+  Первый updater sanitizer-прогон обнаружил обход test mock через glibc __fread_chk;
+  checked wrapper добавлен, повторный прогон всех файловых и allocation faults PASS.
+- Логи: /tmp/config-parser-audit-contract.log, /tmp/config-parser-audit-updater.log,
+  /tmp/config-parser-audit-debug.log, /tmp/config-parser-audit-reality.log,
+  /tmp/config-parser-audit-ncd.log, /tmp/config-parser-audit-services.log.
+  Санитайзеры: соответствующие /tmp/config-parser-audit-asan-*.log,
+  сборка /tmp/config-parser-audit-asan-build.log и /tmp/config-parser-audit-asan-tests-build.log.
+  Общая сборка: /tmp/config-instance-audit-full-build.log.

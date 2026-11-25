@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="dm_members_title">Conversation devices</string>
+    <string name="dm_my_devices">My devices</string>
+    <string name="dm_peer_devices">Peer devices</string>
+    <string name="dm_members_unavailable">Could not refresh the device list</string>
+    <string name="dm_mode_title">Devices for this conversation</string>
+    <string name="dm_mode_groups">With device groups</string>
+    <string name="dm_mode_device">Only these devices</string>
+    <string name="dm_download">Download</string>
+    <string name="dm_file_unavailable">File unavailable</string>
+    <string name="dm_archived">You left the device group. Saved history is still available.</string>
+</resources>

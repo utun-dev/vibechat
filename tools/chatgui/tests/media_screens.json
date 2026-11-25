@@ -1,0 +1,6 @@
+{
+    "screens": [
+        {"name": "HDMI-A-1", "x": 0, "y": 0, "width": 1280, "height": 800},
+        {"name": "DP-1", "x": 1280, "y": 0, "width": 1024, "height": 768}
+    ]
+}

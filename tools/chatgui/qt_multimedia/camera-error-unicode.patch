@@ -1,0 +1,14 @@
+--- a/src/plugins/multimedia/ffmpeg/qwindowscamera.cpp
++++ b/src/plugins/multimedia/ffmpeg/qwindowscamera.cpp
+@@ -198,8 +198,9 @@
+     void onReadSample(HRESULT status, LONGLONG timestamp, IMFSample *sample)
+     {
+         if (FAILED(status)) {
+-            const std::string msg{ std::system_category().message(status) };
+-            m_windowsCamera.updateError(QCamera::CameraError, QString::fromStdString(msg));
++            const QString message = QSystemError::windowsComString(status);
++            qWarning().noquote() << "Camera read failed (Unicode):" << message;
++            m_windowsCamera.updateError(QCamera::CameraError, message);
+             return;
+         }
+ 

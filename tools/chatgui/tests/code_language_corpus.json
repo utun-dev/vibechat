@@ -1,0 +1,218 @@
+[
+  {
+    "file": "madler__zlib__adler32.c",
+    "language": "C",
+    "url": "https://raw.githubusercontent.com/madler/zlib/51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf/adler32.c",
+    "sha256": "9cd1443a24ff2a3053961695bd432035c58347386a420d3388232376ebabe211",
+    "split": "initial"
+  },
+  {
+    "file": "madler__zlib__inflate.c",
+    "language": "C",
+    "url": "https://raw.githubusercontent.com/madler/zlib/51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf/inflate.c",
+    "sha256": "34c998ce0037c0537c04b03b276f680b945f9b2c9d1e01b287605bd6879f7fd2",
+    "split": "initial"
+  },
+  {
+    "file": "fmtlib__fmt__src__format.cc",
+    "language": "C++",
+    "url": "https://raw.githubusercontent.com/fmtlib/fmt/123913715afeb8a437e6388b4473fcc4753e1c9a/src/format.cc",
+    "sha256": "c253dc156509a9cba330bbad3f3d7057d8de33acedbe64fc3e8c5a18bc171def",
+    "split": "initial"
+  },
+  {
+    "file": "fmtlib__fmt__src__os.cc",
+    "language": "C++",
+    "url": "https://raw.githubusercontent.com/fmtlib/fmt/123913715afeb8a437e6388b4473fcc4753e1c9a/src/os.cc",
+    "sha256": "4b79c031c9bc495a74e4b28a64bad77ea3c4f66c616052d413be7d54c2c16fbb",
+    "split": "initial"
+  },
+  {
+    "file": "junit-team__junit4__src__main__java__org__junit__Assert.java",
+    "language": "Java",
+    "url": "https://raw.githubusercontent.com/junit-team/junit4/05fe2a64f59127c02135be22f416e91260d6ede6/src/main/java/org/junit/Assert.java",
+    "sha256": "fc19ffe95f565ab6c8702ac40accb91c7caaa6b98e4dd3f6d53f2ea0193f3e7b",
+    "split": "initial"
+  },
+  {
+    "file": "junit-team__junit4__src__main__java__org__junit__runners__BlockJUnit4ClassRunner.java",
+    "language": "Java",
+    "url": "https://raw.githubusercontent.com/junit-team/junit4/05fe2a64f59127c02135be22f416e91260d6ede6/src/main/java/org/junit/runners/BlockJUnit4ClassRunner.java",
+    "sha256": "218ac2f796567bcc7fb53a133e8fb675e037cbbc534900c0541a91c8c077ad12",
+    "split": "initial"
+  },
+  {
+    "file": "square__okio__okio__src__commonMain__kotlin__okio__Buffer.kt",
+    "language": "Kotlin",
+    "url": "https://raw.githubusercontent.com/square/okio/8b870e8eaacecb1c1ceffbbb47246112604a1f92/okio/src/commonMain/kotlin/okio/Buffer.kt",
+    "sha256": "45a1218f7e0048d8fc6a3f57c10510222c133aee33211b83675863bf160cd74f",
+    "split": "initial"
+  },
+  {
+    "file": "square__okio__okio__src__commonMain__kotlin__okio__ByteString.kt",
+    "language": "Kotlin",
+    "url": "https://raw.githubusercontent.com/square/okio/8b870e8eaacecb1c1ceffbbb47246112604a1f92/okio/src/commonMain/kotlin/okio/ByteString.kt",
+    "sha256": "8063cfa8c85e2494e62a90ab00ae85329ffb9c35c7cdee95a09f6671c27778d3",
+    "split": "initial"
+  },
+  {
+    "file": "BurntSushi__ripgrep__crates__core__main.rs",
+    "language": "Rust",
+    "url": "https://raw.githubusercontent.com/BurntSushi/ripgrep/4649aa9700619f94cf9c66876e9549d83420e16c/crates/core/main.rs",
+    "sha256": "dc3f8c2e868d3b852b5cf34a16ff6fbf181b30f6bb7b67ba3051400152d59136",
+    "split": "initial"
+  },
+  {
+    "file": "BurntSushi__ripgrep__crates__core__flags__parse.rs",
+    "language": "Rust",
+    "url": "https://raw.githubusercontent.com/BurntSushi/ripgrep/4649aa9700619f94cf9c66876e9549d83420e16c/crates/core/flags/parse.rs",
+    "sha256": "731c57fe9984e5d4aa08699a5e6f93a16eb28051d428376a005d6c4dccba7147",
+    "split": "initial"
+  },
+  {
+    "file": "symfony__http-foundation__Response.php",
+    "language": "PHP/PHP",
+    "url": "https://raw.githubusercontent.com/symfony/http-foundation/e88a66c3997859532bc2ddd6dd8f35aba2711744/Response.php",
+    "sha256": "1f81bb82cac49189735aa8d6eac4d362ef93e383fe5e4d7afda52d01e42b624f",
+    "split": "initial"
+  },
+  {
+    "file": "symfony__http-foundation__Request.php",
+    "language": "PHP/PHP",
+    "url": "https://raw.githubusercontent.com/symfony/http-foundation/e88a66c3997859532bc2ddd6dd8f35aba2711744/Request.php",
+    "sha256": "9b710aa7fb75a8b0d9cdf298942f950953384f271df66e1b2575b0420a11472a",
+    "split": "initial"
+  },
+  {
+    "file": "lodash__lodash__lodash.js",
+    "language": "JavaScript",
+    "url": "https://raw.githubusercontent.com/lodash/lodash/f299b52f39486275a9e6483b60a410e06520c538/lodash.js",
+    "sha256": "4c04561befdf653aef017a42ac5addf68ea943cdfca6bdee5ce04e04e8139f54",
+    "split": "initial"
+  },
+  {
+    "file": "lodash__lodash__test__test.js",
+    "language": "JavaScript",
+    "url": "https://raw.githubusercontent.com/lodash/lodash/f299b52f39486275a9e6483b60a410e06520c538/test/test.js",
+    "sha256": "11444e3ed9a629f1e1eda35fc4808857e650c266abc6b050bb59b15eeff45633",
+    "split": "initial"
+  },
+  {
+    "file": "twbs__bootstrap__dist__css__bootstrap.css",
+    "language": "CSS",
+    "url": "https://raw.githubusercontent.com/twbs/bootstrap/6e1f75f420f68e1d52733b8e407fc7c3766c9dba/dist/css/bootstrap.css",
+    "sha256": "18a105d7cb38e01e5ed0ca255c092992a2e211b39594a7fa57262bfc6fc4ea9c",
+    "split": "initial"
+  },
+  {
+    "file": "twbs__bootstrap__dist__css__bootstrap-grid.css",
+    "language": "CSS",
+    "url": "https://raw.githubusercontent.com/twbs/bootstrap/6e1f75f420f68e1d52733b8e407fc7c3766c9dba/dist/css/bootstrap-grid.css",
+    "sha256": "632e7f841a919a6536309d532b03f6697a133baf8e8f3acb98922c0b65b2e07f",
+    "split": "initial"
+  },
+  {
+    "file": "h5bp__html5-boilerplate__src__index.html",
+    "language": "HTML",
+    "url": "https://raw.githubusercontent.com/h5bp/html5-boilerplate/a479681283a795ef29c4317d796cef8b24c88f3d/src/index.html",
+    "sha256": "c7bef71fcc9358bfdaea1eeecf576a00da50f606d76af1109d7307df52e1f269",
+    "split": "initial"
+  },
+  {
+    "file": "h5bp__html5-boilerplate__src__404.html",
+    "language": "HTML",
+    "url": "https://raw.githubusercontent.com/h5bp/html5-boilerplate/a479681283a795ef29c4317d796cef8b24c88f3d/src/404.html",
+    "sha256": "e47ac747a07974b10dc6b421d7a7050a6873c12c3781d098c1051728aa57dd58",
+    "split": "initial",
+    "snippets": [
+      "HTML",
+      "CSS",
+      "HTML"
+    ],
+    "note": "Middle 20-line window contains only CSS inside <style>."
+  },
+  {
+    "file": "curl__curl__lib__strcase.c",
+    "language": "C",
+    "url": "https://raw.githubusercontent.com/curl/curl/57495c64871d18905a0941db9196ef90bafe9a29/lib/strcase.c",
+    "sha256": "bffeded001b589634623afecb484f7eb874e86ecf8be51f69d615ec48b5460d0",
+    "split": "validation"
+  },
+  {
+    "file": "google__googletest__googletest__src__gtest-port.cc",
+    "language": "C++",
+    "url": "https://raw.githubusercontent.com/google/googletest/6910c9d9165801d8827d628cb72eb7ea9dd538c5/googletest/src/gtest-port.cc",
+    "sha256": "5efb91d426e321925787a13a5915c082db6c237eda42f288bacf86a1d1ae601f",
+    "split": "validation"
+  },
+  {
+    "file": "google__gson__gson__src__main__java__com__google__gson__JsonParser.java",
+    "language": "Java",
+    "url": "https://raw.githubusercontent.com/google/gson/29e3d1d2cc0ce4175378e511a87f538561625515/gson/src/main/java/com/google/gson/JsonParser.java",
+    "sha256": "43dbf42d456b5174bc3477457789b60de133d179abefd6fe64077de968fbed30",
+    "split": "validation"
+  },
+  {
+    "file": "JetBrains__kotlin__libraries__stdlib__src__kotlin__util__Preconditions.kt",
+    "language": "Kotlin",
+    "url": "https://raw.githubusercontent.com/JetBrains/kotlin/6dff5659f42b0b90863d10ee503efd5a8ebb1034/libraries/stdlib/src/kotlin/util/Preconditions.kt",
+    "sha256": "55d24a0a2a753dee701ba554b1636d3ab09f969bd3e912ffbb0d4dfb1ae395e4",
+    "split": "validation"
+  },
+  {
+    "file": "sharkdp__fd__src__main.rs",
+    "language": "Rust",
+    "url": "https://raw.githubusercontent.com/sharkdp/fd/b19136871310b01500b4f09eadd7387b8476be47/src/main.rs",
+    "sha256": "09f4f726edded773cc96bb403f92f818b76877fb6b9ffb2e055ecdef1bc1066f",
+    "split": "validation"
+  },
+  {
+    "file": "laravel__framework__src__Illuminate__Support__Str.php",
+    "language": "PHP/PHP",
+    "url": "https://raw.githubusercontent.com/laravel/framework/6089f679d6d29e6071a6448ed5e96de02e57fedb/src/Illuminate/Support/Str.php",
+    "sha256": "0747006eb6b370588416e5c31afee5d67b3e79b5d7d80754a4a7852d09d350dd",
+    "split": "validation"
+  },
+  {
+    "file": "jquery__jquery__src__core.js",
+    "language": "JavaScript",
+    "url": "https://raw.githubusercontent.com/jquery/jquery/f79d5f1a337528940ab7029d4f8bbba72326f269/src/core.js",
+    "sha256": "0bc34bc70e6f9405e8bf81996f29cfaf1e19e1fd7fb855d83b8217a596549292",
+    "split": "validation"
+  },
+  {
+    "file": "necolas__normalize.css__normalize.css",
+    "language": "CSS",
+    "url": "https://raw.githubusercontent.com/necolas/normalize.css/fc091cce1534909334c1911709a39c22d406977b/normalize.css",
+    "sha256": "580818700724d42d7fcc4979b0197971fca1c6d2e0286769237a0ac897df5512",
+    "split": "validation"
+  },
+  {
+    "file": "bigskysoftware__htmx__test__index.html",
+    "language": "HTML",
+    "url": "https://raw.githubusercontent.com/bigskysoftware/htmx/b82cf843e47e575dd8c2ad8fee547d8e2c3bb87f/test/index.html",
+    "sha256": "ea9c0853f3037389049747a5f2d75f8039f3c34f987c1020f2b7e90411c2fb9f",
+    "split": "validation"
+  },
+  {
+    "file": "madler__zlib__README",
+    "language": "",
+    "url": "https://raw.githubusercontent.com/madler/zlib/51b7f2abdade71cd9bb0e7a373ef2610ec6f9daf/README",
+    "sha256": "d106dcdb2a0b3087cb3a2380b9f00a0bbadc7eb835cd80408f94a2d78d69727d",
+    "split": "negative"
+  },
+  {
+    "file": "fmtlib__fmt__LICENSE",
+    "language": "",
+    "url": "https://raw.githubusercontent.com/fmtlib/fmt/123913715afeb8a437e6388b4473fcc4753e1c9a/LICENSE",
+    "sha256": "07580f2a3b35709ce703d523f447b242f6dfec7582a8c0df102c7fa2849375f8",
+    "split": "negative"
+  },
+  {
+    "file": "lodash__lodash__LICENSE",
+    "language": "",
+    "url": "https://raw.githubusercontent.com/lodash/lodash/f299b52f39486275a9e6483b60a410e06520c538/LICENSE",
+    "sha256": "f71e8ed126b46346494aad5486874cd8f0aafe95092ed67d2e3cb6110f939abc",
+    "split": "negative"
+  }
+]

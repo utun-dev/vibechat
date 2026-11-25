@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<components version="1.0" origin="vibechat">
+  <component type="desktop-application">
+    <id>org.utun.vibechat</id>
+    <pkgname>vibechat</pkgname>
+    <metadata_license>CC0-1.0</metadata_license>
+    <project_license>GPL-3.0-only</project_license>
+    <name>VibeChat</name>
+    <summary>Peer-to-peer messenger with voice, video and streams</summary>
+    <summary xml:lang="ru">Одноранговый мессенджер со звонками и трансляциями</summary>
+    <description>
+      <p>VibeChat connects participants directly for group chats, private messages, voice and video calls, and live broadcasts.</p>
+    </description>
+    <description xml:lang="ru">
+      <p>VibeChat соединяет участников напрямую для группового общения, личных сообщений, голосовых и видеозвонков и прямых трансляций.</p>
+    </description>
+    <developer id="org.utun">
+      <name>uTun developers</name>
+    </developer>
+    <url type="homepage">https://git.syqiq.tech/jeka/utun2</url>
+    <launchable type="desktop-id">org.utun.vibechat.desktop</launchable>
+    <icon type="local">/usr/share/pixmaps/org.utun.vibechat.png</icon>
+    <provides>
+      <binary>vibechat</binary>
+    </provides>
+    <categories>
+      <category>Network</category>
+      <category>InstantMessaging</category>
+    </categories>
+  </component>
+</components>
