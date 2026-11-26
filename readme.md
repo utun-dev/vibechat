@@ -1,16 +1,15 @@
-
-Библиотека для посмтроения mesh-сети и mesh чат с поддержкой:
+Библиотека для построения mesh-сети и mesh чат с поддержкой:
 - групп
 - рации, голосоывх, видеозвонков, трансляций
 - kanban доски
 
 web: https://utun.freedev.app
 
-1. Скачать репозиторий:
+1. Скачать [репозиторий VibeChat на GitHub](https://github.com/utun-dev/vibechat):
 
    ```bash
-   git clone ...
-   cd utun2
+   git clone https://github.com/utun-dev/vibechat.git
+   cd vibechat
    ```
 
 2. Собрать ядро и VibeChat для Linux:
@@ -78,30 +77,3 @@ web: https://utun.freedev.app
 
 Готовые программы: `src/utun` и `tools/chatgui/build/vibechat`.
 Подготовка Android-зависимостей и параметры скрипта: [doc/dependencies.txt](doc/dependencies.txt).
-
-HTTP-прокси для скачивания зависимостей и установки пакетов задаётся в локальном `proxy.sh` в корне.
-Создайте его из `proxy.sh.example` (`cp proxy.sh.example proxy.sh`, в Windows — `copy proxy.sh.example proxy.sh`)
-и измените только строку с URL:
-
-```sh
-UTUN_HTTP_PROXY='http://127.0.0.1:8080'
-```
-
-Скрипты сборки подключают файл сами; `curl`, Git, pacman и дочерние процессы получают
-`http_proxy`, `https_proxy`, `HTTP_PROXY`, `HTTPS_PROXY`. Установка пакетов через sudo сохраняет эти переменные.
-Windows bootstrap читает тот же URL до установки MSYS2 и передаёт прокси непосредственно в PowerShell-загрузчик.
-Можно указать `http://user:password@host:port`; специальные символы в логине и пароле нужно URL-encode.
-Пустой URL сохраняет настройки из окружения. `proxy.sh` исключён из Git и архива исходников.
-
-Архив `tar.xz` текущего Git-коммита без `html/`, `.git`, кешей и локальных сборочных файлов:
-
-```bash
-./archive_sources.sh
-```
-
-По умолчанию создаётся `../utun2-sources-<commit>.tar.xz` со сжатием `xz -9e` и публикуется
-как `vc@vc:/home/vc/www/utun2-master.tar.xz`. После загрузки архива скрипт публикует HTML-страницы,
-ссылающиеся на него. Нужны `git`, `xz` и настроенный SSH-доступ к `vc@vc`.
-
-Только локальный архив, без публикации: `./archive_sources.sh --no-publish`.
-Другой путь: `./archive_sources.sh --no-publish /tmp/utun2-sources.tar.xz`.
